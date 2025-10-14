@@ -53,31 +53,16 @@ local function on_attach(client, bufnr)
   end, vim.tbl_extend('force', opts, { desc = 'Format' }))
 end
 
--- Helper function to get Mason binary path
-local function get_mason_path(server_name)
-  local mason_registry = require('mason-registry')
-  if mason_registry.is_installed(server_name) then
-    return mason_registry.get_package(server_name):get_install_path()
-  end
-  return nil
-end
-
 -- TypeScript/JavaScript Language Server
 vim.api.nvim_create_autocmd('FileType', {
   pattern = { 'typescript', 'typescriptreact', 'javascript', 'javascriptreact' },
   callback = function(args)
     local root_dir = vim.fs.dirname(vim.fs.find({ 'package.json', 'tsconfig.json', 'jsconfig.json', '.git' }, { upward = true })[1])
     
-    -- Try Mason path first, fallback to system PATH
-    local cmd = { 'typescript-language-server', '--stdio' }
-    local mason_path = get_mason_path('typescript-language-server')
-    if mason_path then
-      cmd[1] = mason_path .. '/node_modules/.bin/typescript-language-server'
-    end
-
+    -- Mason should add binaries to PATH automatically
     local client = vim.lsp.start({
       name = 'typescript-language-server',
-      cmd = cmd,
+      cmd = { 'typescript-language-server', '--stdio' },
       root_dir = root_dir,
       on_attach = on_attach,
       settings = {
@@ -111,16 +96,10 @@ vim.api.nvim_create_autocmd('FileType', {
   callback = function(args)
     local root_dir = vim.fs.dirname(vim.fs.find({ 'package.json', '.git' }, { upward = true })[1])
     
-    -- Try Mason path first, fallback to system PATH
-    local cmd = { 'json-lsp' }
-    local mason_path = get_mason_path('json-lsp')
-    if mason_path then
-      cmd[1] = mason_path .. '/node_modules/.bin/json-lsp'
-    end
-
+    -- Mason should add binaries to PATH automatically
     local client = vim.lsp.start({
       name = 'jsonls',
-      cmd = cmd,
+      cmd = { 'json-lsp' },
       root_dir = root_dir,
       on_attach = on_attach,
       settings = {

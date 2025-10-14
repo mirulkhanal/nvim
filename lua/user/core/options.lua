@@ -5,8 +5,8 @@
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
--- Set to false to disable icons entirely
-vim.g.have_nerd_font = false
+-- Set to true if you have a Nerd Font installed
+vim.g.have_nerd_font = true
 
 -- Basic options
 vim.o.number = true
@@ -24,5 +24,4 @@ vim.o.splitbelow = true
 vim.o.cursorline = true
 vim.o.scrolloff = 10
 
--- Colorscheme
-vim.cmd.colorscheme('default')
+-- Colorscheme is set in lua/user/plugins/init.lua (gruvbox-material)

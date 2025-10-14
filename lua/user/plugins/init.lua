@@ -17,6 +17,25 @@ vim.opt.rtp:prepend(lazypath)
 
 -- Setup lazy.nvim
 require("lazy").setup({
+  -- Gruvbox Material colorscheme
+  {
+    'sainnhe/gruvbox-material',
+    lazy = false,
+    priority = 1000,
+    config = function()
+      -- Configuration for gruvbox-material
+      vim.g.gruvbox_material_background = 'hard' -- 'hard', 'medium', 'soft'
+      vim.g.gruvbox_material_foreground = 'material' -- 'material', 'mix', 'original'
+      vim.g.gruvbox_material_enable_italic = true
+      vim.g.gruvbox_material_enable_bold = true
+      vim.g.gruvbox_material_transparent_background = 0 -- 0 = opaque, 1 = transparent, 2 = transparent + UI
+      vim.g.gruvbox_material_better_performance = 1
+      
+      -- Load the colorscheme
+      vim.cmd.colorscheme('gruvbox-material')
+    end,
+  },
+
   -- Which-key for keymap hints
   {
     'folke/which-key.nvim',

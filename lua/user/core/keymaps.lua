@@ -44,13 +44,19 @@ vim.api.nvim_create_autocmd('User', {
   { '<leader>x', '<cmd>x<CR>', desc = 'Save and quit' },
   { '<leader>h', '<cmd>nohlsearch<CR>', desc = 'Clear highlights' },
   
-  -- File operations
-  { '<leader>f', group = 'File/Format' },
+  -- Find operations (Telescope)
+  { '<leader>f', group = 'Find' },
+  { '<leader>ff', desc = 'Find files' }, -- Set by Telescope
+  { '<leader>fg', desc = 'Live grep' }, -- Set by Telescope
+  { '<leader>fb', desc = 'Find buffers' }, -- Set by Telescope
+  { '<leader>fh', desc = 'Help tags' }, -- Set by Telescope
+  { '<leader>fr', desc = 'Recent files' }, -- Set by Telescope
+  { '<leader>fw', desc = 'Find word' }, -- Set by Telescope
+  { '<leader>fc', desc = 'Commands' }, -- Set by Telescope
+  { '<leader>fk', desc = 'Keymaps' }, -- Set by Telescope
+  { '<leader>fs', desc = 'Document symbols' }, -- Set by Telescope
+  { '<leader>fS', desc = 'Workspace symbols' }, -- Set by Telescope
   { '<leader>fn', '<cmd>enew<CR>', desc = 'New file' },
-  { '<leader>fs', '<cmd>w<CR>', desc = 'Save file' },
-  { '<leader>fS', '<cmd>wa<CR>', desc = 'Save all files' },
-  { '<leader>fq', '<cmd>q<CR>', desc = 'Quit' },
-  { '<leader>fQ', '<cmd>qa<CR>', desc = 'Quit all' },
   
   -- Buffer operations
   { '<leader>b', group = 'Buffer' },

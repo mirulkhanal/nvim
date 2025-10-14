@@ -79,6 +79,119 @@ require("lazy").setup({
     },
   },
 
+  -- Telescope fuzzy finder (like Ctrl+P in VSCode)
+  {
+    'nvim-telescope/telescope.nvim',
+    branch = '0.1.x',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      {
+        'nvim-telescope/telescope-fzf-native.nvim',
+        build = 'make',
+        cond = function()
+          return vim.fn.executable 'make' == 1
+        end,
+      },
+    },
+    cmd = 'Telescope',
+    keys = {
+      { '<leader>ff', '<cmd>Telescope find_files<cr>', desc = 'Find files' },
+      { '<leader>fg', '<cmd>Telescope live_grep<cr>', desc = 'Live grep' },
+      { '<leader>fb', '<cmd>Telescope buffers<cr>', desc = 'Find buffers' },
+      { '<leader>fh', '<cmd>Telescope help_tags<cr>', desc = 'Help tags' },
+      { '<leader>fr', '<cmd>Telescope oldfiles<cr>', desc = 'Recent files' },
+      { '<leader>fw', '<cmd>Telescope grep_string<cr>', desc = 'Find word' },
+      { '<leader>fc', '<cmd>Telescope commands<cr>', desc = 'Commands' },
+      { '<leader>fk', '<cmd>Telescope keymaps<cr>', desc = 'Keymaps' },
+      { '<leader>fs', '<cmd>Telescope lsp_document_symbols<cr>', desc = 'Document symbols' },
+      { '<leader>fS', '<cmd>Telescope lsp_workspace_symbols<cr>', desc = 'Workspace symbols' },
+      { '<Ctrl-p>', '<cmd>Telescope find_files<cr>', desc = 'Find files' },
+    },
+    config = function()
+      local telescope = require('telescope')
+      local actions = require('telescope.actions')
+      
+      telescope.setup({
+        defaults = {
+          prompt_prefix = '🔍 ',
+          selection_caret = '➜ ',
+          path_display = { 'truncate' },
+          file_ignore_patterns = { 
+            'node_modules', 
+            '.git/', 
+            'dist/',
+            'build/',
+            '%.lock',
+          },
+          mappings = {
+            i = {
+              ['<C-j>'] = actions.move_selection_next,
+              ['<C-k>'] = actions.move_selection_previous,
+              ['<C-q>'] = actions.send_to_qflist + actions.open_qflist,
+              ['<Esc>'] = actions.close,
+            },
+            n = {
+              ['q'] = actions.close,
+              ['<C-q>'] = actions.send_to_qflist + actions.open_qflist,
+            },
+          },
+          layout_config = {
+            horizontal = {
+              preview_width = 0.55,
+              results_width = 0.8,
+            },
+            vertical = {
+              mirror = false,
+            },
+            width = 0.87,
+            height = 0.80,
+            preview_cutoff = 120,
+          },
+          -- Enable preview
+          preview = {
+            enable = true,
+            treesitter = true,
+          },
+        },
+        pickers = {
+          find_files = {
+            theme = 'dropdown',
+            previewer = true,
+            hidden = false,
+          },
+          live_grep = {
+            theme = 'dropdown',
+            previewer = true,
+          },
+          buffers = {
+            theme = 'dropdown',
+            previewer = true,
+            initial_mode = 'normal',
+            mappings = {
+              i = {
+                ['<C-d>'] = actions.delete_buffer,
+              },
+              n = {
+                ['dd'] = actions.delete_buffer,
+              },
+            },
+          },
+        },
+        extensions = {
+          fzf = {
+            fuzzy = true,
+            override_generic_sorter = true,
+            override_file_sorter = true,
+            case_mode = 'smart_case',
+          },
+        },
+      })
+      
+      -- Load fzf extension if available
+      pcall(telescope.load_extension, 'fzf')
+    end,
+  },
+
   -- Which-key for keymap hints
   {
     'folke/which-key.nvim',

@@ -88,16 +88,108 @@ require("lazy").setup({
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
     event = { 'BufReadPost', 'BufNewFile' },
+    dependencies = {
+      'nvim-treesitter/nvim-treesitter-textobjects', -- Enhanced text objects
+    },
     config = function()
       require('nvim-treesitter.configs').setup({
-        ensure_installed = { 'typescript', 'javascript', 'json', 'lua', 'vim', 'vimdoc' },
+        -- Install parsers for these languages
+        ensure_installed = {
+          'typescript',
+          'javascript',
+          'tsx',
+          'json',
+          'jsonc',
+          'lua',
+          'vim',
+          'vimdoc',
+          'markdown',
+          'markdown_inline',
+          'html',
+          'css',
+          'bash',
+          'regex',
+        },
+        
+        -- Install parsers synchronously (only applied to `ensure_installed`)
+        sync_install = false,
+        
+        -- Automatically install missing parsers when entering buffer
+        auto_install = true,
+        
+        -- Syntax highlighting
         highlight = {
           enable = true,
+          -- Disable for large files
+          disable = function(lang, buf)
+            local max_filesize = 100 * 1024 -- 100 KB
+            local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+            if ok and stats and stats.size > max_filesize then
+              return true
+            end
+          end,
+          additional_vim_regex_highlighting = false,
         },
+        
+        -- Indentation based on treesitter
         indent = {
           enable = true,
+          -- Disable for specific languages if needed
+          disable = {},
+        },
+        
+        -- Incremental selection
+        incremental_selection = {
+          enable = true,
+          keymaps = {
+            init_selection = '<CR>',
+            node_incremental = '<CR>',
+            scope_incremental = '<S-CR>',
+            node_decremental = '<BS>',
+          },
+        },
+        
+        -- Text objects
+        textobjects = {
+          select = {
+            enable = true,
+            lookahead = true,
+            keymaps = {
+              ['af'] = '@function.outer',
+              ['if'] = '@function.inner',
+              ['ac'] = '@class.outer',
+              ['ic'] = '@class.inner',
+              ['aa'] = '@parameter.outer',
+              ['ia'] = '@parameter.inner',
+            },
+          },
+          move = {
+            enable = true,
+            set_jumps = true,
+            goto_next_start = {
+              [']f'] = '@function.outer',
+              [']c'] = '@class.outer',
+            },
+            goto_next_end = {
+              [']F'] = '@function.outer',
+              [']C'] = '@class.outer',
+            },
+            goto_previous_start = {
+              ['[f'] = '@function.outer',
+              ['[c'] = '@class.outer',
+            },
+            goto_previous_end = {
+              ['[F'] = '@function.outer',
+              ['[C'] = '@class.outer',
+            },
+          },
         },
       })
+      
+      -- Enable folding based on treesitter
+      vim.opt.foldmethod = 'expr'
+      vim.opt.foldexpr = 'nvim_treesitter#foldexpr()'
+      vim.opt.foldenable = false -- Don't fold by default
     end,
   },
 

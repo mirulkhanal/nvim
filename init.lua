@@ -10,4 +10,7 @@ require('user.core.highlights')
 -- Load plugins
 require('user.plugins')
 
+-- Load LSP configuration (optional - only works if language servers are installed via Mason)
+require('user.lsp')
+
 -- MeeruleNvim config loaded successfully

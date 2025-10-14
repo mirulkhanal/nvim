@@ -29,6 +29,22 @@ require("lazy").setup({
     },
   },
 
+  -- Mason for managing external tools (LSP servers, formatters, linters)
+  {
+    'williamboman/mason.nvim',
+    cmd = 'Mason',
+    build = ':MasonUpdate',
+    opts = {
+      ui = {
+        icons = {
+          package_installed = '✓',
+          package_pending = '➜',
+          package_uninstalled = '✗'
+        }
+      }
+    },
+  },
+
 
   -- Alpha dashboard (beautiful startup screen)
   {

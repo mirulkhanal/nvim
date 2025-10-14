@@ -11,8 +11,6 @@ return {
     icons = {
       -- set icon mappings to true if you have a Nerd Font
       mappings = vim.g.have_nerd_font,
-      -- If you are using a Nerd Font: set icons.keys to an empty table which will use the
-      -- default which-key.nvim defined Nerd Font icons, otherwise define a string table
     },
     layout = {
       height = { min = 4, max = 25 }, -- min and max height of the columns
@@ -20,7 +18,7 @@ return {
       spacing = 3, -- spacing between columns
       align = 'left', -- align columns left, center or right
     },
-    window = {
+    win = {
       border = 'rounded', -- rounded, single, double, shadow, none
       position = 'bottom', -- bottom, top
       margin = { 1, 0, 1, 0 }, -- extra window margin [top, right, bottom, left]

@@ -55,6 +55,12 @@ require("lazy").setup({
         'eslint',
         'jsonls',
       },
+      handlers = {
+        -- Auto-setup all LSP servers
+        function(server_name)
+          require('lspconfig')[server_name].setup({})
+        end,
+      },
     },
   },
 

@@ -18,6 +18,10 @@ vim.keymap.set('n', '<C-l>', '<C-w>l', { desc = 'Go to right window' })
 -- Clear highlights on escape
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
+-- File Explorer keymaps
+vim.keymap.set('n', '<leader>e', '<cmd>Neotree toggle<CR>', { desc = 'Toggle Explorer' })
+vim.keymap.set('n', '<leader>o', '<cmd>Neotree focus<CR>', { desc = 'Focus Explorer' })
+
 -- LSP keymaps (these will be overridden by LSP attach function)
 vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float, { desc = 'Open diagnostic' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Quickfix diagnostics' })

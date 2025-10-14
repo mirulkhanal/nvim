@@ -21,13 +21,52 @@ nvim/
 
 - **Leader Key**: Space (`<space>`)
 - **Plugin Manager**: Lazy.nvim
-- **Keymap Hints**: Which-key.nvim
-- **Basic Keymaps**:
-  - `<leader>w` - Save file
-  - `<leader>q` - Quit
-  - `<leader>h` - Clear highlights
-  - `<leader>t` - Test leader key
-  - `<C-h/j/k/l>` - Window navigation
+- **Keymap Hints**: Which-key.nvim (clean, icon-free interface)
+- **LSP Support**: Full Language Server Protocol setup
+- **Language Servers**: TypeScript/JavaScript, ESLint, JSON with schema validation
+- **Auto-formatting**: On save for JS/TS/JSON files
+
+## Keymaps
+
+### Basic Keymaps
+- `<leader>w` - Save file
+- `<leader>x` - Quit
+- `<leader>h` - Clear highlights
+- `<leader>t` - Test leader key
+- `<leader>e` - Toggle file explorer (Neo-tree)
+- `<leader>o` - Focus file explorer
+- `<leader>fm` - Open Mason (LSP manager)
+- `<C-h/j/k/l>` - Window navigation
+
+### File Explorer (Neo-tree)
+- `<leader>e` - Toggle file explorer
+- `<leader>o` - Focus file explorer
+- `<Enter>` - Open file
+- `s` - Open in vertical split
+- `S` - Open in horizontal split
+- `t` - Open in new tab
+- `a` - Add file
+- `A` - Add directory
+- `d` - Delete file
+- `r` - Rename file
+- `y` - Copy file
+- `x` - Cut file
+- `p` - Paste file
+- `R` - Refresh
+- `?` - Show help
+
+### LSP Keymaps (when LSP is active)
+- `gd` - Go to definition
+- `gD` - Go to declaration
+- `K` - Show documentation
+- `gi` - Go to implementation
+- `gr` - Show references
+- `<leader>D` - Type definition
+- `<leader>rn` - Rename symbol
+- `<leader>ca` - Code action
+- `<leader>f` - Format code
+- `[d` / `]d` - Previous/Next diagnostic
+- `<leader>d` - Open diagnostic
 
 ## Adding New Plugins
 

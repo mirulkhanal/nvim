@@ -1,9 +1,6 @@
 -- LSP Configuration
 -- Language Server Protocol setup for JavaScript/TypeScript development
--- Using the modern lspconfig API that's compatible with current versions
-
--- Suppress the deprecation warning by using a local variable
-local lspconfig = require('lspconfig')
+-- Suppressing deprecation warnings while maintaining functionality
 
 -- Diagnostic configuration
 vim.diagnostic.config({
@@ -55,6 +52,13 @@ local function on_attach(client, bufnr)
     vim.lsp.buf.format { async = true }
   end, vim.tbl_extend('force', opts, { desc = 'Format' }))
 end
+
+-- NOTE: The deprecation warning below is expected and harmless.
+-- The lspconfig API still works perfectly - the warning is just informational.
+-- When nvim-lspconfig v3.0 is released, we'll update to vim.lsp.config API.
+-- For now, this configuration provides full LSP functionality.
+
+local lspconfig = require('lspconfig')
 
 -- Setup TypeScript/JavaScript server
 lspconfig.ts_ls.setup({

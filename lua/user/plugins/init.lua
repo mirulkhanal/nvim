@@ -45,6 +45,7 @@ require('lazy').setup({
 
   -- Optional plugins (uncomment to enable)
   require('user.plugins.autopairs'),
+  require('user.plugins.gitsigns'),
   require('user.plugins.debug'),
   require('user.plugins.indent-blankline'),
   require('user.plugins.lint'),

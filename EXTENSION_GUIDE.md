@@ -264,11 +264,13 @@ To enable the optional kickstart plugins, uncomment them in `lua/user/plugins/in
 ```lua
 -- Optional plugins (uncomment to enable)
 require('user.plugins.autopairs'),      -- Auto-close brackets
-require('user.plugins.gitsigns'),       -- Git integration
+require('user.plugins.gitsigns'),       -- Git integration (extends base)
 require('user.plugins.debug'),          -- Debugging support
 require('user.plugins.indent-blankline'), -- Indent guides
 require('user.plugins.lint'),           -- Linting
 ```
+
+**Note**: `gitsigns-base` is always loaded. `gitsigns` extends it with additional keymaps.
 
 ## 🎯 **Common Extension Patterns**
 

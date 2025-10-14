@@ -11,14 +11,7 @@ vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
--- Additional helpful keymaps for which-key
-vim.keymap.set('n', '<leader>w', '<cmd>w<CR>', { desc = '[W]rite/Save file' })
-vim.keymap.set('n', '<leader>W', '<cmd>wq<CR>', { desc = '[W]rite and quit' })
-vim.keymap.set('n', '<leader>x', '<cmd>q<CR>', { desc = 'E[x]it' })
-vim.keymap.set('n', '<leader>H', '<cmd>nohlsearch<CR>', { desc = 'Clear [H]ighlights' })
-vim.keymap.set('n', '<leader>e', '<cmd>Neotree toggle<CR>', { desc = 'Toggle [E]xplorer' })
-vim.keymap.set('n', '<leader>u', '<cmd>Lazy<CR>', { desc = '[U]pdate plugins (Lazy)' })
-vim.keymap.set('n', '<leader>r', '<cmd>source %<CR>', { desc = '[R]eload current file' })
+-- Leader keymaps are defined in leader-keymaps.lua and loaded after plugins
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which

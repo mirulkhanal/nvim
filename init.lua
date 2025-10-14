@@ -40,5 +40,8 @@ require('user.core.autocmds')
 -- Load plugins
 require('user.plugins')
 
+-- Load leader keymaps after plugins are loaded
+require('user.core.leader-keymaps')
+
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et

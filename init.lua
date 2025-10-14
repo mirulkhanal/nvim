@@ -40,10 +40,14 @@ require('user.core.autocmds')
 -- Load plugins
 require('user.plugins')
 
--- Load leader keymaps after plugins are loaded
-vim.schedule(function()
-  require('user.core.leader-keymaps')
-end)
+-- Register leader keymaps after plugins are loaded
+vim.keymap.set('n', '<leader>w', '<cmd>w<CR>', { desc = '[W]rite/Save file' })
+vim.keymap.set('n', '<leader>W', '<cmd>wq<CR>', { desc = '[W]rite and quit' })
+vim.keymap.set('n', '<leader>x', '<cmd>q<CR>', { desc = 'E[x]it' })
+vim.keymap.set('n', '<leader>H', '<cmd>nohlsearch<CR>', { desc = 'Clear [H]ighlights' })
+vim.keymap.set('n', '<leader>e', '<cmd>Neotree toggle<CR>', { desc = 'Toggle [E]xplorer' })
+vim.keymap.set('n', '<leader>u', '<cmd>Lazy<CR>', { desc = '[U]pdate plugins (Lazy)' })
+vim.keymap.set('n', '<leader>r', '<cmd>source %<CR>', { desc = '[R]eload current file' })
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et

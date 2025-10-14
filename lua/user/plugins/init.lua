@@ -214,19 +214,23 @@ require("lazy").setup({
       -- Custom keymaps
       local api = require('Comment.api')
       
-      -- Toggle comment on current line
+      -- Toggle comment on current line (line comment)
       vim.keymap.set('n', '<leader>/', function()
         api.toggle.linewise.current()
       end, { desc = 'Toggle comment' })
       
-      -- Toggle comment on selection
+      -- Toggle block comment on selection (/* */ style)
       vim.keymap.set('v', '<leader>/', function()
         local esc = vim.api.nvim_replace_termcodes('<ESC>', true, false, true)
         vim.api.nvim_feedkeys(esc, 'nx', false)
-        api.toggle.linewise(vim.fn.visualmode())
-      end, { desc = 'Toggle comment' })
+        api.toggle.blockwise(vim.fn.visualmode())
+      end, { desc = 'Toggle block comment' })
       
-      -- Also keep gcc for line comment and gc for visual comment
+      -- Additional keymaps:
+      -- gcc - toggle line comment
+      -- gc  - toggle line comment (visual)
+      -- gbc - toggle block comment (current line)
+      -- gb  - toggle block comment (visual)
       -- These are set by Comment.nvim automatically
     end,
   },

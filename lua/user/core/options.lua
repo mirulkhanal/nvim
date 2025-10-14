@@ -24,6 +24,22 @@ vim.o.splitbelow = true
 vim.o.cursorline = true
 vim.o.scrolloff = 10
 
+-- VSCode-like options
+vim.o.wrap = false -- Don't wrap lines
+vim.o.linebreak = true -- Break lines at word boundaries
+vim.o.breakindent = true -- Maintain indent when wrapping
+vim.o.expandtab = true -- Use spaces instead of tabs
+vim.o.shiftwidth = 2 -- Size of indent
+vim.o.tabstop = 2 -- Number of spaces tabs count for
+vim.o.softtabstop = 2 -- Number of spaces for editing
+vim.o.smartindent = true -- Smart autoindenting
+vim.o.autoindent = true -- Copy indent from current line
+vim.o.undofile = true -- Save undo history
+vim.o.undolevels = 10000 -- Maximum number of changes that can be undone
+vim.o.swapfile = false -- Don't use swapfile
+vim.o.backup = false -- Don't create backup files
+vim.o.writebackup = false -- Don't create backup before overwriting
+
 -- Command line height (0 = auto-hide when not in use)
 vim.o.cmdheight = 1
 

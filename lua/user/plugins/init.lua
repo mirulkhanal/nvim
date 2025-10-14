@@ -191,6 +191,70 @@ require("lazy").setup({
     end,
   },
 
+  -- Autopairs - automatically close brackets, quotes, etc.
+  {
+    'windwp/nvim-autopairs',
+    event = 'InsertEnter',
+    config = function()
+      local autopairs = require('nvim-autopairs')
+      autopairs.setup({
+        check_ts = true, -- Use treesitter
+        ts_config = {
+          lua = { 'string' }, -- Don't add pairs in lua string treesitter nodes
+          javascript = { 'template_string' },
+          java = false, -- Don't check treesitter on java
+        },
+        disable_filetype = { 'TelescopePrompt', 'vim' },
+        fast_wrap = {
+          map = '<M-e>', -- Alt+e to fast wrap
+          chars = { '{', '[', '(', '"', "'" },
+          pattern = [=[[%'%"%>%]%)%}%,]]=],
+          end_key = '$',
+          keys = 'qwertyuiopzxcvbnmasdfghjkl',
+          check_comma = true,
+          highlight = 'Search',
+          highlight_grey = 'Comment'
+        },
+      })
+    end,
+  },
+
+  -- Auto tag closing for HTML/JSX
+  {
+    'windwp/nvim-ts-autotag',
+    event = 'InsertEnter',
+    dependencies = { 'nvim-treesitter/nvim-treesitter' },
+    config = function()
+      require('nvim-ts-autotag').setup({
+        opts = {
+          enable_close = true, -- Auto close tags
+          enable_rename = true, -- Auto rename pairs of tags
+          enable_close_on_slash = true -- Auto close on trailing </
+        },
+      })
+    end,
+  },
+
+  -- Multi-cursor editing (like VSCode Ctrl+D)
+  {
+    'mg979/vim-visual-multi',
+    branch = 'master',
+    event = { 'BufReadPre', 'BufNewFile' },
+    init = function()
+      -- Use Ctrl+Down/Up for multi-cursor
+      vim.g.VM_maps = {
+        ['Find Under'] = '<C-d>', -- Ctrl+d like VSCode
+        ['Find Subword Under'] = '<C-d>',
+        ['Skip Region'] = '<C-x>',
+        ['Remove Region'] = '<C-p>',
+        ['Add Cursor Down'] = '<C-Down>',
+        ['Add Cursor Up'] = '<C-Up>',
+      }
+      vim.g.VM_theme = 'purplegray'
+      vim.g.VM_highlight_matches = 'underline'
+    end,
+  },
+
   -- Comment.nvim for toggling comments
   {
     'numToStr/Comment.nvim',
@@ -233,6 +297,59 @@ require("lazy").setup({
       -- gb  - toggle block comment (visual)
       -- These are set by Comment.nvim automatically
     end,
+  },
+
+  -- Surround text objects (like VSCode's bracket wrapping)
+  {
+    'kylechui/nvim-surround',
+    version = '*',
+    event = { 'BufReadPre', 'BufNewFile' },
+    config = function()
+      require('nvim-surround').setup({
+        -- Configuration here, or leave empty to use defaults
+        keymaps = {
+          insert = '<C-g>s',
+          insert_line = '<C-g>S',
+          normal = 'ys',
+          normal_cur = 'yss',
+          normal_line = 'yS',
+          normal_cur_line = 'ySS',
+          visual = 'S',
+          visual_line = 'gS',
+          delete = 'ds',
+          change = 'cs',
+        },
+      })
+    end,
+  },
+
+  -- Indent guides (like VSCode indent lines)
+  {
+    'lukas-reineke/indent-blankline.nvim',
+    main = 'ibl',
+    event = { 'BufReadPost', 'BufNewFile' },
+    opts = {
+      indent = {
+        char = '▏',
+        tab_char = '▏',
+      },
+      scope = {
+        enabled = true,
+        show_start = true,
+        show_end = false,
+      },
+      exclude = {
+        filetypes = {
+          'help',
+          'alpha',
+          'dashboard',
+          'neo-tree',
+          'Trouble',
+          'lazy',
+          'mason',
+        },
+      },
+    },
   },
 
   -- Which-key for keymap hints

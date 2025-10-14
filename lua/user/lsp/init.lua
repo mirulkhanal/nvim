@@ -36,12 +36,15 @@ local function on_attach(client, bufnr)
   
   -- Code actions (<leader>c prefix)
   vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, vim.tbl_extend('force', opts, { desc = 'Code action' }))
+  vim.keymap.set('v', '<leader>ca', vim.lsp.buf.code_action, vim.tbl_extend('force', opts, { desc = 'Code action' }))
   vim.keymap.set('n', '<leader>cr', vim.lsp.buf.rename, vim.tbl_extend('force', opts, { desc = 'Rename symbol' }))
   vim.keymap.set('n', '<leader>cf', function() vim.lsp.buf.format({ async = true }) end, vim.tbl_extend('force', opts, { desc = 'Format file' }))
   vim.keymap.set('n', '<leader>cd', vim.diagnostic.open_float, vim.tbl_extend('force', opts, { desc = 'Show diagnostic' }))
   
-  -- Also keep <leader>f for quick format
+  -- Quick actions (VSCode-like)
   vim.keymap.set('n', '<leader>f', function() vim.lsp.buf.format({ async = true }) end, vim.tbl_extend('force', opts, { desc = 'Format file' }))
+  vim.keymap.set('n', '<C-Space>', vim.lsp.buf.code_action, vim.tbl_extend('force', opts, { desc = 'Code action (auto-import)' }))
+  vim.keymap.set('i', '<C-Space>', vim.lsp.buf.signature_help, vim.tbl_extend('force', opts, { desc = 'Signature help' }))
   
   -- Diagnostics navigation
   vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, vim.tbl_extend('force', opts, { desc = 'Previous diagnostic' }))

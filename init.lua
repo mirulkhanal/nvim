@@ -1,55 +1,50 @@
---[[
-=====================================================================
-==================== MODULAR NEOVIM CONFIGURATION ====================
-=====================================================================
+-- Simple Neovim Configuration
+-- Basic setup with essential plugins
 
-This is your modular Neovim configuration based on kickstart.nvim
-but organized in a more maintainable and educational structure.
+-- Set leader key to space
+vim.g.mapleader = ' '
+vim.g.maplocalleader = ' '
 
-Structure:
-├── init.lua (this file)
-└── lua/
-    └── user/
-        ├── core/
-        │   ├── options.lua    - Basic vim options
-        │   ├── keymaps.lua    - Basic keymaps
-        │   └── autocmds.lua   - Basic autocommands
-        ├── plugins/
-        │   ├── init.lua       - Plugin manager setup
-        │   ├── *.lua          - Individual plugin configs
-        │   └── kickstart/     - Kickstart plugin configs
-        ├── lsp/
-        │   ├── init.lua       - LSP initialization
-        │   ├── config/        - LSP configuration files
-        │   └── servers/       - Individual language server configs
-        └── utils/             - Utility functions
+-- Basic options
+vim.o.number = true
+vim.o.relativenumber = true
+vim.o.mouse = 'a'
+vim.o.showmode = false
+vim.o.timeoutlen = 300
+vim.o.updatetime = 250
 
-To customize:
-1. Add new plugins in lua/user/plugins/
-2. Add LSP servers in lua/user/lsp/servers/
-3. Modify core settings in lua/user/core/
-4. Add custom plugins in lua/custom/plugins/
+-- Install lazy.nvim if not present
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not vim.loop.fs_stat(lazypath) then
+  vim.fn.system({
+    "git",
+    "clone",
+    "--filter=blob:none",
+    "https://github.com/folke/lazy.nvim.git",
+    "--branch=stable",
+    lazypath,
+  })
+end
+vim.opt.rtp:prepend(lazypath)
 
---]]
+-- Setup lazy.nvim
+require("lazy").setup({
+  -- Which-key for keymap hints
+  {
+    'folke/which-key.nvim',
+    event = 'VeryLazy',
+    opts = {
+      delay = 0,
+    },
+  },
+})
 
--- Load core configurations
-require('user.core.options')
-require('user.core.keymaps')
-require('user.core.autocmds')
+-- Basic keymaps
+vim.keymap.set('n', '<leader>w', '<cmd>w<CR>', { desc = 'Save file' })
+vim.keymap.set('n', '<leader>q', '<cmd>q<CR>', { desc = 'Quit' })
+vim.keymap.set('n', '<leader>h', '<cmd>nohlsearch<CR>', { desc = 'Clear highlights' })
 
--- Load plugins
-require('user.plugins')
+-- Test keymap
+vim.keymap.set('n', '<leader>t', '<cmd>echo "Leader key works!"<CR>', { desc = 'Test leader' })
 
--- Register leader keymaps after plugins are loaded
-vim.schedule(function()
-  vim.keymap.set('n', '<leader>w', '<cmd>w<CR>', { desc = '[W]rite/Save file' })
-  vim.keymap.set('n', '<leader>W', '<cmd>wq<CR>', { desc = '[W]rite and quit' })
-  vim.keymap.set('n', '<leader>x', '<cmd>q<CR>', { desc = 'E[x]it' })
-  vim.keymap.set('n', '<leader>H', '<cmd>nohlsearch<CR>', { desc = 'Clear [H]ighlights' })
-  vim.keymap.set('n', '<leader>e', '<cmd>Neotree toggle<CR>', { desc = 'Toggle [E]xplorer' })
-  vim.keymap.set('n', '<leader>u', '<cmd>Lazy<CR>', { desc = '[U]pdate plugins (Lazy)' })
-  vim.keymap.set('n', '<leader>r', '<cmd>source %<CR>', { desc = '[R]eload current file' })
-end)
-
--- The line beneath this is called `modeline`. See `:help modeline`
--- vim: ts=2 sts=2 sw=2 et
+print("Simple Neovim config loaded successfully!")

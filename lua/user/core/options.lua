@@ -23,3 +23,6 @@ vim.o.splitright = true
 vim.o.splitbelow = true
 vim.o.cursorline = true
 vim.o.scrolloff = 10
+
+-- Colorscheme
+vim.cmd.colorscheme('default')

@@ -105,7 +105,6 @@ require("lazy").setup({
       { '<leader>fk', '<cmd>Telescope keymaps<cr>', desc = 'Keymaps' },
       { '<leader>fs', '<cmd>Telescope lsp_document_symbols<cr>', desc = 'Document symbols' },
       { '<leader>fS', '<cmd>Telescope lsp_workspace_symbols<cr>', desc = 'Workspace symbols' },
-      { '<Ctrl-p>', '<cmd>Telescope find_files<cr>', desc = 'Find files' },
     },
     config = function()
       local telescope = require('telescope')

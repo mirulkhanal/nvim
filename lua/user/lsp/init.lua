@@ -50,67 +50,60 @@ end
 -- Default capabilities (for autocompletion support if you add it later)
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 
--- Get mason-lspconfig
-local mason_lspconfig = require('mason-lspconfig')
+-- Get lspconfig
+local lspconfig = require('lspconfig')
 
--- Setup mason-lspconfig to automatically configure all installed servers
-mason_lspconfig.setup_handlers({
-  -- Default handler - applies to all servers
-  function(server_name)
-    require('lspconfig')[server_name].setup({
-      on_attach = on_attach,
-      capabilities = capabilities,
-    })
-  end,
+-- Setup all installed servers automatically
+local mason_lspconfig = require('mason-lspconfig')
+local installed_servers = mason_lspconfig.get_installed_servers()
+
+for _, server_name in ipairs(installed_servers) do
+  -- Default setup for all servers
+  local opts = {
+    on_attach = on_attach,
+    capabilities = capabilities,
+  }
   
-  -- Custom handler for lua_ls (better Neovim config support)
-  ['lua_ls'] = function()
-    require('lspconfig').lua_ls.setup({
-      on_attach = on_attach,
-      capabilities = capabilities,
-      settings = {
-        Lua = {
-          runtime = { version = 'LuaJIT' },
-          workspace = {
-            checkThirdParty = false,
-            library = {
-              vim.env.VIMRUNTIME,
-            },
+  -- Custom settings for specific servers
+  if server_name == 'lua_ls' then
+    opts.settings = {
+      Lua = {
+        runtime = { version = 'LuaJIT' },
+        workspace = {
+          checkThirdParty = false,
+          library = {
+            vim.env.VIMRUNTIME,
           },
-          diagnostics = {
-            globals = { 'vim' },
-          },
-          telemetry = { enable = false },
+        },
+        diagnostics = {
+          globals = { 'vim' },
+        },
+        telemetry = { enable = false },
+      },
+    }
+  elseif server_name == 'ts_ls' then
+    opts.settings = {
+      typescript = {
+        inlayHints = {
+          includeInlayParameterNameHints = 'all',
+          includeInlayFunctionParameterTypeHints = true,
+          includeInlayVariableTypeHints = true,
+          includeInlayPropertyDeclarationTypeHints = true,
+          includeInlayFunctionLikeReturnTypeHints = true,
         },
       },
-    })
-  end,
-  
-  -- Custom handler for TypeScript (with inlay hints)
-  ['ts_ls'] = function()
-    require('lspconfig').ts_ls.setup({
-      on_attach = on_attach,
-      capabilities = capabilities,
-      settings = {
-        typescript = {
-          inlayHints = {
-            includeInlayParameterNameHints = 'all',
-            includeInlayFunctionParameterTypeHints = true,
-            includeInlayVariableTypeHints = true,
-            includeInlayPropertyDeclarationTypeHints = true,
-            includeInlayFunctionLikeReturnTypeHints = true,
-          },
-        },
-        javascript = {
-          inlayHints = {
-            includeInlayParameterNameHints = 'all',
-            includeInlayFunctionParameterTypeHints = true,
-            includeInlayVariableTypeHints = true,
-            includeInlayPropertyDeclarationTypeHints = true,
-            includeInlayFunctionLikeReturnTypeHints = true,
-          },
+      javascript = {
+        inlayHints = {
+          includeInlayParameterNameHints = 'all',
+          includeInlayFunctionParameterTypeHints = true,
+          includeInlayVariableTypeHints = true,
+          includeInlayPropertyDeclarationTypeHints = true,
+          includeInlayFunctionLikeReturnTypeHints = true,
         },
       },
-    })
-  end,
-})
+    }
+  end
+  
+  -- Setup the server
+  lspconfig[server_name].setup(opts)
+end

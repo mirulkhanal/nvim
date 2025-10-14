@@ -34,21 +34,17 @@ require("lazy").setup({
     'williamboman/mason.nvim',
     cmd = 'Mason',
     build = ':MasonUpdate',
-    opts = {
-      ui = {
-        icons = {
-          package_installed = '✓',
-          package_pending = '➜',
-          package_uninstalled = '✗'
+    config = function()
+      require('mason').setup({
+        ui = {
+          icons = {
+            package_installed = '✓',
+            package_pending = '➜',
+            package_uninstalled = '✗'
+          }
         }
-      }
-    },
-  },
-
-  -- Mason-LSPConfig bridge
-  {
-    'williamboman/mason-lspconfig.nvim',
-    dependencies = { 'williamboman/mason.nvim' },
+      })
+    end,
   },
 
   -- LSP Configuration with automatic setup
@@ -57,21 +53,23 @@ require("lazy").setup({
     event = { 'BufReadPre', 'BufNewFile' },
     dependencies = {
       'williamboman/mason.nvim',
-      'williamboman/mason-lspconfig.nvim',
+      {
+        'williamboman/mason-lspconfig.nvim',
+        config = function()
+          require('mason-lspconfig').setup({
+            -- Automatically install these language servers
+            ensure_installed = {
+              'ts_ls',      -- TypeScript/JavaScript
+              'lua_ls',     -- Lua
+            },
+            -- Automatically setup all installed servers
+            automatic_installation = true,
+          })
+        end,
+      },
     },
     config = function()
-      -- Setup mason-lspconfig first
-      require('mason-lspconfig').setup({
-        -- Automatically install these language servers
-        ensure_installed = {
-          'ts_ls',      -- TypeScript/JavaScript
-          'lua_ls',     -- Lua
-        },
-        -- Automatically setup all installed servers
-        automatic_installation = true,
-      })
-      
-      -- Then load our LSP configuration
+      -- Load our LSP configuration
       require('user.lsp')
     end,
   },

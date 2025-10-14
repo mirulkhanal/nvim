@@ -41,7 +41,9 @@ require('user.core.autocmds')
 require('user.plugins')
 
 -- Load leader keymaps after plugins are loaded
-require('user.core.leader-keymaps')
+vim.schedule(function()
+  require('user.core.leader-keymaps')
+end)
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et

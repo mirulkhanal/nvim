@@ -5,7 +5,7 @@
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
--- Set to false if you don't have a Nerd Font installed and selected in the terminal
+-- Set to false to disable icons entirely
 vim.g.have_nerd_font = false
 
 -- Basic options

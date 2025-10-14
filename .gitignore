@@ -1,7 +1,21 @@
-tags
-test.sh
-.luarc.json
-nvim
+# Neovim specific
+*.log
+*.tmp
+*.swp
+*.swo
+*~
 
-spell/
+# Lazy.nvim
 lazy-lock.json
+
+# Backup files
+*.backup
+*~
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp

@@ -112,8 +112,8 @@ vim.api.nvim_create_autocmd('User', {
   { '<leader>Tu', '<cmd>TSUpdate<CR>', desc = 'Update parsers' },
   { '<leader>Th', '<cmd>TSHighlightCapturesUnderCursor<CR>', desc = 'Highlight info' },
   
-  -- Search operations
-  { '<leader>/', '<cmd>nohlsearch<CR>', desc = 'Clear search' },
+  -- Comment toggle (set by Comment.nvim plugin)
+  { '<leader>/', desc = 'Toggle comment' },
   
   -- Help/Documentation
   { '<leader>?', group = 'Help' },

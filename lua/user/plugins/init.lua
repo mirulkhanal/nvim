@@ -28,4 +28,51 @@ require("lazy").setup({
       },
     },
   },
+
+  -- Mason for LSP server management
+  {
+    'williamboman/mason.nvim',
+    cmd = 'Mason',
+    keys = { { '<leader>cm', '<cmd>Mason<cr>', desc = 'Mason' } },
+    opts = {
+      ensure_installed = {
+        'typescript-language-server',
+        'eslint-lsp',
+        'json-lsp',
+        'prettier',
+      },
+    },
+  },
+
+  -- Mason LSP config
+  {
+    'williamboman/mason-lspconfig.nvim',
+    dependencies = { 'mason.nvim' },
+    opts = {
+      auto_install = true,
+      ensure_installed = {
+        'ts_ls',
+        'eslint',
+        'jsonls',
+      },
+    },
+  },
+
+  -- JSON Schema Store
+  {
+    'b0o/schemastore.nvim',
+  },
+
+  -- LSP configuration
+  {
+    'neovim/nvim-lspconfig',
+    event = { 'BufReadPre', 'BufNewFile' },
+    dependencies = {
+      { 'williamboman/mason-lspconfig.nvim' },
+      { 'b0o/schemastore.nvim' },
+    },
+    config = function()
+      require('user.lsp')
+    end,
+  },
 })

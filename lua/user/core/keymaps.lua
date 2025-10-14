@@ -3,7 +3,7 @@
 
 -- Basic keymaps
 vim.keymap.set('n', '<leader>w', '<cmd>w<CR>', { desc = 'Save file' })
-vim.keymap.set('n', '<leader>q', '<cmd>q<CR>', { desc = 'Quit' })
+vim.keymap.set('n', '<leader>x', '<cmd>q<CR>', { desc = 'Quit' })
 vim.keymap.set('n', '<leader>h', '<cmd>nohlsearch<CR>', { desc = 'Clear highlights' })
 
 -- Test keymap
@@ -17,3 +17,8 @@ vim.keymap.set('n', '<C-l>', '<C-w>l', { desc = 'Go to right window' })
 
 -- Clear highlights on escape
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
+
+-- LSP keymaps (these will be overridden by LSP attach function)
+vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float, { desc = 'Open diagnostic' })
+vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Quickfix diagnostics' })
+vim.keymap.set('n', '<leader>fm', '<cmd>Mason<CR>', { desc = 'Mason (LSP manager)' })

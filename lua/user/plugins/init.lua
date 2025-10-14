@@ -41,13 +41,13 @@ require('lazy').setup({
   require('user.plugins.todo-comments'),
   require('user.plugins.mini'),
   require('user.plugins.treesitter'),
+  require('user.plugins.gitsigns-base'),
 
   -- Optional plugins (uncomment to enable)
-  -- require('user.plugins.autopairs'),
-  -- require('user.plugins.gitsigns'),
-  -- require('user.plugins.debug'),
-  -- require('user.plugins.indent-blankline'),
-  -- require('user.plugins.lint'),
+  require('user.plugins.autopairs'),
+  require('user.plugins.debug'),
+  require('user.plugins.indent-blankline'),
+  require('user.plugins.lint'),
   require('user.plugins.neo-tree'),
 
   -- Load custom plugins from the custom directory

@@ -61,8 +61,7 @@ return {
       align = 'left', -- align columns left, center or right
     },
 
-    -- Better sorting and grouping (updated for new which-key API)
-    filter = { event = 'key' }, -- only show keymaps, hide other mappings
+    -- Better sorting and grouping
     show_help = true, -- show help message on the command line when the popup is visible
 
     -- Document existing key chains with better organization

@@ -109,4 +109,4 @@ vim.api.nvim_create_autocmd('BufWritePre', {
   end,
 })
 
-print('LSP configuration loaded successfully!')
+-- LSP configuration loaded successfully

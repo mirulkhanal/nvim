@@ -33,4 +33,4 @@ vim.api.nvim_set_hl(0, 'NeoTreeTabSeparatorInactive', { bg = '#313244', fg = '#3
 -- Remove tildes from empty lines
 vim.api.nvim_set_hl(0, 'EndOfBuffer', { bg = 'NONE', fg = 'NONE' })
 
-print('Enhanced Neo-tree highlights loaded!')
+-- Enhanced Neo-tree highlights loaded

@@ -10,4 +10,4 @@ require('user.core.highlights')
 -- Load plugins
 require('user.plugins')
 
-print("MeeruleNvim config loaded successfully!")
+-- MeeruleNvim config loaded successfully

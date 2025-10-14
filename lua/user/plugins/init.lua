@@ -76,6 +76,16 @@ require("lazy").setup({
     end,
   },
 
+  -- Alpha dashboard (beautiful startup screen)
+  {
+    'goolord/alpha-nvim',
+    dependencies = { 'echasnovski/mini.icons' },
+    event = 'VimEnter',
+    config = function()
+      require('alpha').setup(require('alpha.themes.dashboard').config)
+    end,
+  },
+
   -- Neo-tree file explorer (VS Code-like with enhanced styling)
   {
     'nvim-neo-tree/neo-tree.nvim',

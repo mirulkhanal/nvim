@@ -1,71 +1,8 @@
--- Simple LSP Configuration
--- Uses Neovim's native LSP client with Mason-installed servers
--- 
--- To add TypeScript support:
--- 1. Open Neovim
--- 2. Run :Mason
--- 3. Press 'i' on 'typescript-language-server' to install it
--- 4. Restart Neovim and open a .ts/.js file
+-- LSP Configuration (AstroNvim-style)
+-- Automatic setup for all language servers installed via Mason
+-- Just install a server in Mason and it works automatically!
 
--- Only set up LSP if Mason has installed the language server
-local function setup_typescript_lsp()
-  -- Check if typescript-language-server is available in PATH
-  if vim.fn.executable('typescript-language-server') == 0 then
-    return
-  end
-
-  -- Set up LSP keymaps when LSP attaches to a buffer
-  vim.api.nvim_create_autocmd('LspAttach', {
-    group = vim.api.nvim_create_augroup('UserLspConfig', {}),
-    callback = function(ev)
-      local opts = { buffer = ev.buf, silent = true }
-      
-      -- Navigation
-      vim.keymap.set('n', 'gd', vim.lsp.buf.definition, vim.tbl_extend('force', opts, { desc = 'Go to definition' }))
-      vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, vim.tbl_extend('force', opts, { desc = 'Go to declaration' }))
-      vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, vim.tbl_extend('force', opts, { desc = 'Go to implementation' }))
-      vim.keymap.set('n', 'gr', vim.lsp.buf.references, vim.tbl_extend('force', opts, { desc = 'Show references' }))
-      vim.keymap.set('n', 'K', vim.lsp.buf.hover, vim.tbl_extend('force', opts, { desc = 'Hover documentation' }))
-      
-      -- Code actions
-      vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, vim.tbl_extend('force', opts, { desc = 'Rename' }))
-      vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, vim.tbl_extend('force', opts, { desc = 'Code action' }))
-      vim.keymap.set('n', '<leader>f', function() vim.lsp.buf.format({ async = true }) end, vim.tbl_extend('force', opts, { desc = 'Format' }))
-      
-      -- Diagnostics
-      vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, vim.tbl_extend('force', opts, { desc = 'Previous diagnostic' }))
-      vim.keymap.set('n', ']d', vim.diagnostic.goto_next, vim.tbl_extend('force', opts, { desc = 'Next diagnostic' }))
-      vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float, vim.tbl_extend('force', opts, { desc = 'Show diagnostic' }))
-    end,
-  })
-
-  -- Start TypeScript LSP for TypeScript/JavaScript files
-  vim.api.nvim_create_autocmd('FileType', {
-    pattern = { 'typescript', 'typescriptreact', 'javascript', 'javascriptreact' },
-    callback = function()
-      local root_dir = vim.fs.dirname(
-        vim.fs.find({ 'package.json', 'tsconfig.json', 'jsconfig.json', '.git' }, { upward = true })[1]
-      )
-      
-      vim.lsp.start({
-        name = 'typescript-language-server',
-        cmd = { 'typescript-language-server', '--stdio' },
-        root_dir = root_dir,
-        init_options = {
-          preferences = {
-            includeInlayParameterNameHints = 'all',
-            includeInlayFunctionParameterTypeHints = true,
-            includeInlayVariableTypeHints = true,
-            includeInlayPropertyDeclarationTypeHints = true,
-            includeInlayFunctionLikeReturnTypeHints = true,
-          }
-        },
-      })
-    end,
-  })
-end
-
--- Configure diagnostics
+-- Configure diagnostics appearance
 vim.diagnostic.config({
   virtual_text = true,
   signs = true,
@@ -85,6 +22,95 @@ for type, icon in pairs(signs) do
   vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
 end
 
--- Set up TypeScript LSP
-setup_typescript_lsp()
+-- LSP keymaps that will be set when LSP attaches to a buffer
+local function on_attach(client, bufnr)
+  local opts = { buffer = bufnr, silent = true }
+  
+  -- Navigation
+  vim.keymap.set('n', 'gd', vim.lsp.buf.definition, vim.tbl_extend('force', opts, { desc = 'Go to definition' }))
+  vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, vim.tbl_extend('force', opts, { desc = 'Go to declaration' }))
+  vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, vim.tbl_extend('force', opts, { desc = 'Go to implementation' }))
+  vim.keymap.set('n', 'gr', vim.lsp.buf.references, vim.tbl_extend('force', opts, { desc = 'Show references' }))
+  vim.keymap.set('n', 'K', vim.lsp.buf.hover, vim.tbl_extend('force', opts, { desc = 'Hover documentation' }))
+  
+  -- Code actions
+  vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, vim.tbl_extend('force', opts, { desc = 'Rename' }))
+  vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, vim.tbl_extend('force', opts, { desc = 'Code action' }))
+  vim.keymap.set('n', '<leader>f', function() vim.lsp.buf.format({ async = true }) end, vim.tbl_extend('force', opts, { desc = 'Format' }))
+  
+  -- Diagnostics
+  vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, vim.tbl_extend('force', opts, { desc = 'Previous diagnostic' }))
+  vim.keymap.set('n', ']d', vim.diagnostic.goto_next, vim.tbl_extend('force', opts, { desc = 'Next diagnostic' }))
+  vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float, vim.tbl_extend('force', opts, { desc = 'Show diagnostic' }))
+  
+  -- Show a message when LSP attaches
+  vim.notify('LSP attached: ' .. client.name, vim.log.levels.INFO)
+end
 
+-- Default capabilities (for autocompletion support if you add it later)
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+
+-- Get mason-lspconfig
+local mason_lspconfig = require('mason-lspconfig')
+
+-- Setup mason-lspconfig to automatically configure all installed servers
+mason_lspconfig.setup_handlers({
+  -- Default handler - applies to all servers
+  function(server_name)
+    require('lspconfig')[server_name].setup({
+      on_attach = on_attach,
+      capabilities = capabilities,
+    })
+  end,
+  
+  -- Custom handler for lua_ls (better Neovim config support)
+  ['lua_ls'] = function()
+    require('lspconfig').lua_ls.setup({
+      on_attach = on_attach,
+      capabilities = capabilities,
+      settings = {
+        Lua = {
+          runtime = { version = 'LuaJIT' },
+          workspace = {
+            checkThirdParty = false,
+            library = {
+              vim.env.VIMRUNTIME,
+            },
+          },
+          diagnostics = {
+            globals = { 'vim' },
+          },
+          telemetry = { enable = false },
+        },
+      },
+    })
+  end,
+  
+  -- Custom handler for TypeScript (with inlay hints)
+  ['ts_ls'] = function()
+    require('lspconfig').ts_ls.setup({
+      on_attach = on_attach,
+      capabilities = capabilities,
+      settings = {
+        typescript = {
+          inlayHints = {
+            includeInlayParameterNameHints = 'all',
+            includeInlayFunctionParameterTypeHints = true,
+            includeInlayVariableTypeHints = true,
+            includeInlayPropertyDeclarationTypeHints = true,
+            includeInlayFunctionLikeReturnTypeHints = true,
+          },
+        },
+        javascript = {
+          inlayHints = {
+            includeInlayParameterNameHints = 'all',
+            includeInlayFunctionParameterTypeHints = true,
+            includeInlayVariableTypeHints = true,
+            includeInlayPropertyDeclarationTypeHints = true,
+            includeInlayFunctionLikeReturnTypeHints = true,
+          },
+        },
+      },
+    })
+  end,
+})

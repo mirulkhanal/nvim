@@ -45,6 +45,37 @@ require("lazy").setup({
     },
   },
 
+  -- Mason-LSPConfig bridge
+  {
+    'williamboman/mason-lspconfig.nvim',
+    dependencies = { 'williamboman/mason.nvim' },
+  },
+
+  -- LSP Configuration with automatic setup
+  {
+    'neovim/nvim-lspconfig',
+    event = { 'BufReadPre', 'BufNewFile' },
+    dependencies = {
+      'williamboman/mason.nvim',
+      'williamboman/mason-lspconfig.nvim',
+    },
+    config = function()
+      -- Setup mason-lspconfig first
+      require('mason-lspconfig').setup({
+        -- Automatically install these language servers
+        ensure_installed = {
+          'ts_ls',      -- TypeScript/JavaScript
+          'lua_ls',     -- Lua
+        },
+        -- Automatically setup all installed servers
+        automatic_installation = true,
+      })
+      
+      -- Then load our LSP configuration
+      require('user.lsp')
+    end,
+  },
+
 
   -- Alpha dashboard (beautiful startup screen)
   {

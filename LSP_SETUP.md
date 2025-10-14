@@ -1,100 +1,192 @@
-# LSP Setup Guide
+# LSP Setup Guide (AstroNvim-Style)
 
-This Neovim configuration uses **Mason** to manage LSP servers and Neovim's **native LSP client** to provide IDE-like features.
+This Neovim configuration uses **automatic LSP setup** just like AstroNvim. Install a language server via Mason and it works automatically!
 
-## 🚀 Quick Start for TypeScript
+## 🚀 Quick Start
 
-### Step 1: Install TypeScript Language Server
+### TypeScript/JavaScript (Already Configured!)
 
-1. Open Neovim: `nvim`
-2. Press `<Space>m` to open Mason
-3. Search for `typescript-language-server` (or just scroll to find it)
-4. Press `i` to install it
-5. Wait for installation to complete (you'll see a ✓ when done)
-6. Press `q` to close Mason
+TypeScript and Lua language servers are **automatically installed** on first launch. Just:
 
-### Step 2: Use TypeScript Features
+1. **Restart Neovim** - Servers will install automatically
+2. **Open a TypeScript file** - `test.ts` or any `.ts`/`.js` file
+3. **LSP works automatically!** - You'll see "LSP attached: ts_ls" notification
 
-1. Open any `.ts`, `.tsx`, `.js`, or `.jsx` file
-2. The LSP will automatically start (you'll see "LSP attached" in the status)
-3. Use these keymaps:
+### Test LSP Features
 
-#### Navigation
+Create a test file to verify LSP is working:
+
+```bash
+# Create a test TypeScript file
+echo "const greeting: string = 'Hello';" > test.ts
+
+# Open it in Neovim
+nvim test.ts
+```
+
+Then try these keymaps:
+- Hover over `greeting` and press `K` - Should show type information
+- Press `gd` on `greeting` - Should go to definition
+- Type something wrong and see red underlines (diagnostics)
+
+## 📦 Adding More Language Servers
+
+### Method 1: Automatic (Recommended)
+Add to `ensure_installed` in `lua/user/plugins/init.lua`:
+
+```lua
+ensure_installed = {
+  'ts_ls',      -- TypeScript/JavaScript
+  'lua_ls',     -- Lua
+  'pyright',    -- Python (add this)
+  'rust_analyzer', -- Rust (add this)
+  'gopls',      -- Go (add this)
+},
+```
+
+Restart Neovim and they'll install automatically!
+
+### Method 2: Manual Install
+1. Press `<Space>m` to open Mason
+2. Find the language server you want (e.g., `pyright` for Python)
+3. Press `i` to install
+4. **That's it!** It works automatically, no configuration needed
+
+## 🎯 Available Language Servers
+
+Common servers you can install:
+
+| Language | Server Name | Install Command |
+|----------|-------------|-----------------|
+| TypeScript/JavaScript | `ts_ls` | Already installed |
+| Lua | `lua_ls` | Already installed |
+| Python | `pyright` | `:MasonInstall pyright` |
+| Rust | `rust_analyzer` | `:MasonInstall rust-analyzer` |
+| Go | `gopls` | `:MasonInstall gopls` |
+| C/C++ | `clangd` | `:MasonInstall clangd` |
+| JSON | `jsonls` | `:MasonInstall json-lsp` |
+| HTML | `html` | `:MasonInstall html-lsp` |
+| CSS | `cssls` | `:MasonInstall css-lsp` |
+
+Full list: https://mason-registry.dev/registry/list
+
+## ⌨️ LSP Keymaps
+
+These work automatically when LSP is active:
+
+### Navigation
 - `gd` - Go to definition
 - `gD` - Go to declaration
 - `gi` - Go to implementation
-- `gr` - Show references
+- `gr` - Show all references
 - `K` - Show hover documentation
 
-#### Code Actions
-- `<Space>rn` - Rename symbol
-- `<Space>ca` - Code action
-- `<Space>f` - Format file
+### Code Actions
+- `<Space>rn` - Rename symbol under cursor
+- `<Space>ca` - Show code actions
+- `<Space>f` - Format current file
 
-#### Diagnostics
+### Diagnostics (Errors/Warnings)
 - `[d` - Go to previous diagnostic
 - `]d` - Go to next diagnostic
 - `<Space>d` - Show diagnostic in floating window
 
-## 📦 Adding More Language Servers
+### Mason
+- `<Space>m` - Open Mason UI
 
-### For JSON
-1. Open Mason: `<Space>m`
-2. Install `json-lsp`
-3. Restart Neovim
+## 🔧 How It Works (AstroNvim-Style)
 
-### For Python
-1. Open Mason: `<Space>m`
-2. Install `pyright` or `pylsp`
-3. Restart Neovim
+1. **Mason** installs language servers
+2. **mason-lspconfig** bridges Mason and nvim-lspconfig
+3. **setup_handlers** automatically configures ALL installed servers
+4. **No manual configuration needed** - Just install and use!
 
-### For Rust
-1. Open Mason: `<Space>m`
-2. Install `rust-analyzer`
-3. Restart Neovim
+```
+Mason Install → mason-lspconfig detects it → Auto-configures → LSP works!
+```
 
-### For Go
-1. Open Mason: `<Space>m`
-2. Install `gopls`
-3. Restart Neovim
+## ✅ Checking if LSP is Working
 
-## 🔧 How It Works
+### Method 1: Visual Indicators
+- Open a code file
+- You should see a notification: "LSP attached: server_name"
+- Hover over code and press `K` - should show documentation
+- Type invalid code - should see red underlines
 
-1. **Mason** downloads and installs language servers to `~/.local/share/nvim/mason/`
-2. **Mason automatically adds them to PATH** so Neovim can find them
-3. **Neovim's native LSP client** (`vim.lsp.start()`) connects to these servers
-4. **No lspconfig needed** - pure Neovim APIs only
+### Method 2: LSP Info Command
+```vim
+:LspInfo
+```
+Shows all active LSP clients for current buffer
+
+### Method 3: Check Installed Servers
+```vim
+:Mason
+```
+Look for ✓ icons next to installed servers
+
+## 🌳 Treesitter (Syntax Highlighting)
+
+Treesitter is already configured for:
+- TypeScript/JavaScript
+- JSON
+- Lua
+- Vim
+
+To add more languages, edit `lua/user/plugins/init.lua`:
+
+```lua
+ensure_installed = { 
+  'typescript', 'javascript', 'json', 'lua', 'vim', 'vimdoc',
+  'python',  -- Add this
+  'rust',    -- Add this
+},
+```
 
 ## ⚠️ Troubleshooting
 
-### LSP doesn't start
-- Make sure you installed the language server via Mason
-- Check if it's installed: `:Mason` and look for the ✓ icon
-- Restart Neovim after installing new servers
+### LSP doesn't attach
+1. Check if server is installed: `:Mason`
+2. Check LSP status: `:LspInfo`
+3. Check health: `:checkhealth mason`
+4. Restart Neovim
 
-### "Language server not found" error
-- The server might not be in PATH yet
-- Try restarting Neovim
-- Check `:checkhealth mason` for issues
+### No notification when opening file
+- The server might be installing in background
+- Wait a minute and reopen the file
+- Check `:Mason` to see if installation completed
 
-### Want to add support for a new language?
-1. Find the language server name at https://mason-registry.dev/registry/list
-2. Install it via Mason
-3. Edit `lua/user/lsp/init.lua` to add a new `FileType` autocmd for that language
+### "Server not found" error
+- The server name might be wrong
+- Check available servers: https://mason-registry.dev/registry/list
+- Make sure you're using the lspconfig name (e.g., `ts_ls` not `typescript-language-server`)
 
-## 📝 Configuration Files
+## 🎨 Customization
 
-- `lua/user/lsp/init.lua` - LSP configuration (keymaps, diagnostics, language server setup)
-- `lua/user/plugins/init.lua` - Mason plugin configuration
-- `lua/user/core/keymaps.lua` - Global keymaps (includes `<Space>m` for Mason)
+### Add custom LSP settings
+Edit `lua/user/lsp/init.lua` and add a new handler:
 
-## 🎯 Benefits of This Approach
+```lua
+['your_server'] = function()
+  require('lspconfig').your_server.setup({
+    on_attach = on_attach,
+    capabilities = capabilities,
+    settings = {
+      -- Your custom settings here
+    },
+  })
+end,
+```
 
-✅ **Simple** - No complex plugin dependencies  
-✅ **Clean** - Uses only Neovim's native LSP APIs  
-✅ **Flexible** - Easy to add new language servers  
-✅ **Reliable** - No deprecation warnings  
-✅ **Fast** - Minimal overhead  
+### Change keymaps
+Edit the `on_attach` function in `lua/user/lsp/init.lua`
 
-Enjoy your TypeScript development! 🎉
+## 🎉 Benefits
 
+✅ **Automatic** - Install once, works everywhere  
+✅ **Zero config** - No manual server setup needed  
+✅ **AstroNvim-style** - Same elegant approach  
+✅ **Extensible** - Easy to add new languages  
+✅ **Fast** - Lazy-loaded and optimized  
+
+Enjoy your fully automatic LSP setup! 🚀

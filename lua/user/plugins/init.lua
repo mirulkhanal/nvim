@@ -36,6 +36,49 @@ require("lazy").setup({
     end,
   },
 
+  -- Lualine statusline
+  {
+    'nvim-lualine/lualine.nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    opts = {
+      options = {
+        theme = 'gruvbox-material',
+        component_separators = { left = '|', right = '|' },
+        section_separators = { left = '', right = '' },
+        globalstatus = true, -- Single statusline for all windows
+      },
+      sections = {
+        lualine_a = { 'mode' },
+        lualine_b = { 'branch', 'diff', 'diagnostics' },
+        lualine_c = { 
+          { 'filename', path = 1 } -- Show relative path
+        },
+        lualine_x = { 
+          {
+            -- Show LSP status
+            function()
+              local clients = vim.lsp.get_active_clients({ bufnr = 0 })
+              if #clients == 0 then
+                return ''
+              end
+              local client_names = {}
+              for _, client in ipairs(clients) do
+                table.insert(client_names, client.name)
+              end
+              return '  ' .. table.concat(client_names, ', ')
+            end,
+          },
+          'encoding', 
+          'fileformat', 
+          'filetype' 
+        },
+        lualine_y = { 'progress' },
+        lualine_z = { 'location' }
+      },
+      extensions = { 'neo-tree', 'lazy' }
+    },
+  },
+
   -- Which-key for keymap hints
   {
     'folke/which-key.nvim',

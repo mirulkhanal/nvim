@@ -24,4 +24,11 @@ vim.o.splitbelow = true
 vim.o.cursorline = true
 vim.o.scrolloff = 10
 
+-- Command line height (0 = auto-hide when not in use)
+vim.o.cmdheight = 1
+
+-- Show command in statusline instead of command line
+vim.o.showcmd = true
+vim.o.showcmdloc = 'statusline'
+
 -- Colorscheme is set in lua/user/plugins/init.lua (gruvbox-material)

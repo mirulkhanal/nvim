@@ -9,4 +9,4 @@ require('user.core.autocmds')
 -- Load plugins
 require('user.plugins')
 
-print("Modular Neovim config loaded successfully!")
+print("MeeruleNvim config loaded successfully!")

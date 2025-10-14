@@ -5,6 +5,9 @@
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
+-- Set to false if you don't have a Nerd Font installed and selected in the terminal
+vim.g.have_nerd_font = false
+
 -- Basic options
 vim.o.number = true
 vim.o.relativenumber = true

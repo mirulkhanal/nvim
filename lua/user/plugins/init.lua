@@ -86,6 +86,24 @@ require("lazy").setup({
     end,
   },
 
+  -- Treesitter for enhanced syntax highlighting
+  {
+    'nvim-treesitter/nvim-treesitter',
+    build = ':TSUpdate',
+    event = { 'BufReadPost', 'BufNewFile' },
+    config = function()
+      require('nvim-treesitter.configs').setup({
+        ensure_installed = { 'typescript', 'javascript', 'json', 'lua', 'vim', 'vimdoc' },
+        highlight = {
+          enable = true,
+        },
+        indent = {
+          enable = true,
+        },
+      })
+    end,
+  },
+
   -- Neo-tree file explorer (VS Code-like with enhanced styling)
   {
     'nvim-neo-tree/neo-tree.nvim',

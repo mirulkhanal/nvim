@@ -1,6 +1,6 @@
 -- LSP Configuration
--- Language Server Protocol setup for JavaScript/TypeScript development
--- Suppressing deprecation warnings while maintaining functionality
+-- Language Server Protocol setup using Neovim's built-in vim.lsp.start() API
+-- Modern approach without deprecated lspconfig framework
 
 -- Diagnostic configuration
 vim.diagnostic.config({
@@ -53,58 +53,81 @@ local function on_attach(client, bufnr)
   end, vim.tbl_extend('force', opts, { desc = 'Format' }))
 end
 
--- NOTE: The deprecation warning below is expected and harmless.
--- The lspconfig API still works perfectly - the warning is just informational.
--- When nvim-lspconfig v3.0 is released, we'll update to vim.lsp.config API.
--- For now, this configuration provides full LSP functionality.
-
-local lspconfig = require('lspconfig')
-
--- Setup TypeScript/JavaScript server
-lspconfig.ts_ls.setup({
-  on_attach = on_attach,
-  settings = {
-    typescript = {
-      inlayHints = {
-        includeInlayParameterNameHints = 'all',
-        includeInlayFunctionParameterTypeHints = true,
-        includeInlayVariableTypeHints = true,
-        includeInlayPropertyDeclarationTypeHints = true,
-        includeInlayFunctionLikeReturnTypeHints = true,
+-- TypeScript/JavaScript Language Server using vim.lsp.start()
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = { 'typescript', 'typescriptreact', 'javascript', 'javascriptreact' },
+  callback = function(args)
+    local root_dir = vim.fs.dirname(vim.fs.find({ 'package.json', 'tsconfig.json', 'jsconfig.json', '.git' }, { upward = true })[1])
+    local client = vim.lsp.start({
+      name = 'typescript-language-server',
+      cmd = { 'typescript-language-server', '--stdio' },
+      root_dir = root_dir,
+      on_attach = on_attach,
+      settings = {
+        typescript = {
+          inlayHints = {
+            includeInlayParameterNameHints = 'all',
+            includeInlayFunctionParameterTypeHints = true,
+            includeInlayVariableTypeHints = true,
+            includeInlayPropertyDeclarationTypeHints = true,
+            includeInlayFunctionLikeReturnTypeHints = true,
+          },
+        },
+        javascript = {
+          inlayHints = {
+            includeInlayParameterNameHints = 'all',
+            includeInlayFunctionParameterTypeHints = true,
+            includeInlayVariableTypeHints = true,
+            includeInlayPropertyDeclarationTypeHints = true,
+            includeInlayFunctionLikeReturnTypeHints = true,
+          },
+        },
       },
-    },
-    javascript = {
-      inlayHints = {
-        includeInlayParameterNameHints = 'all',
-        includeInlayFunctionParameterTypeHints = true,
-        includeInlayVariableTypeHints = true,
-        includeInlayPropertyDeclarationTypeHints = true,
-        includeInlayFunctionLikeReturnTypeHints = true,
-      },
-    },
-  },
-})
-
--- Setup ESLint server
-lspconfig.eslint.setup({
-  on_attach = function(client, bufnr)
-    client.server_capabilities.documentFormattingProvider = true
-    on_attach(client, bufnr)
+    })
+    vim.lsp.buf_attach_client(args.buf, client)
   end,
-  settings = {
-    format = true,
-  },
 })
 
--- Setup JSON Language Server
-lspconfig.jsonls.setup({
-  on_attach = on_attach,
-  settings = {
-    json = {
-      schemas = require('schemastore').json.schemas(),
-      validate = { enable = true },
-    },
-  },
+-- ESLint Language Server using vim.lsp.start()
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = { 'typescript', 'typescriptreact', 'javascript', 'javascriptreact' },
+  callback = function(args)
+    local root_dir = vim.fs.dirname(vim.fs.find({ '.eslintrc.js', '.eslintrc.json', '.eslintrc.yaml', '.eslintrc.yml', 'package.json' }, { upward = true })[1])
+    local client = vim.lsp.start({
+      name = 'eslint',
+      cmd = { 'eslint', '--stdio' },
+      root_dir = root_dir,
+      on_attach = function(client, bufnr)
+        client.server_capabilities.documentFormattingProvider = true
+        on_attach(client, bufnr)
+      end,
+      settings = {
+        format = true,
+      },
+    })
+    vim.lsp.buf_attach_client(args.buf, client)
+  end,
+})
+
+-- JSON Language Server using vim.lsp.start()
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = { 'json', 'jsonc' },
+  callback = function(args)
+    local root_dir = vim.fs.dirname(vim.fs.find({ 'package.json', '.git' }, { upward = true })[1])
+    local client = vim.lsp.start({
+      name = 'jsonls',
+      cmd = { 'json-lsp' },
+      root_dir = root_dir,
+      on_attach = on_attach,
+      settings = {
+        json = {
+          schemas = require('schemastore').json.schemas(),
+          validate = { enable = true },
+        },
+      },
+    })
+    vim.lsp.buf_attach_client(args.buf, client)
+  end,
 })
 
 -- Auto-format on save for supported file types

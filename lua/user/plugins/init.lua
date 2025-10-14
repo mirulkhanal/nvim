@@ -44,33 +44,31 @@ require("lazy").setup({
           }
         }
       })
+      
+      -- Auto-install these servers
+      local mason_registry = require('mason-registry')
+      local servers = {
+        'typescript-language-server',
+        'lua-language-server',
+      }
+      
+      for _, server in ipairs(servers) do
+        if not mason_registry.is_installed(server) then
+          vim.cmd('MasonInstall ' .. server)
+        end
+      end
     end,
   },
 
-  -- LSP Configuration with automatic setup
+  -- LSP Configuration (pure vim.lsp, no lspconfig)
   {
-    'neovim/nvim-lspconfig',
-    event = { 'BufReadPre', 'BufNewFile' },
-    dependencies = {
-      'williamboman/mason.nvim',
-      {
-        'williamboman/mason-lspconfig.nvim',
-        config = function()
-          require('mason-lspconfig').setup({
-            -- Automatically install these language servers
-            ensure_installed = {
-              'ts_ls',      -- TypeScript/JavaScript
-              'lua_ls',     -- Lua
-            },
-            -- Automatically setup all installed servers
-            automatic_installation = true,
-          })
-        end,
-      },
-    },
+    'nvim-lua/plenary.nvim', -- Required for some LSP features
+    lazy = false,
     config = function()
-      -- Load our LSP configuration
-      require('user.lsp')
+      -- Load our LSP configuration after Mason is ready
+      vim.defer_fn(function()
+        require('user.lsp')
+      end, 100)
     end,
   },
 

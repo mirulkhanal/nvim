@@ -1,6 +1,6 @@
--- LSP Configuration (AstroNvim-style)
--- Automatic setup for all language servers installed via Mason
--- Just install a server in Mason and it works automatically!
+-- LSP Configuration (Pure vim.lsp API - NO lspconfig)
+-- Uses ONLY Neovim's native LSP client with Mason-installed servers
+-- Automatic setup for all Mason-installed language servers
 
 -- Configure diagnostics appearance
 vim.diagnostic.config({
@@ -47,63 +47,83 @@ local function on_attach(client, bufnr)
   vim.notify('LSP attached: ' .. client.name, vim.log.levels.INFO)
 end
 
--- Default capabilities (for autocompletion support if you add it later)
+-- Default capabilities
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 
--- Get lspconfig
-local lspconfig = require('lspconfig')
+-- Helper to find project root
+local function find_root(patterns)
+  local path = vim.api.nvim_buf_get_name(0)
+  local root = vim.fs.dirname(vim.fs.find(patterns, { path = path, upward = true })[1])
+  return root
+end
 
--- Setup all installed servers automatically
-local mason_lspconfig = require('mason-lspconfig')
-local installed_servers = mason_lspconfig.get_installed_servers()
+-- TypeScript/JavaScript Language Server
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = { 'typescript', 'typescriptreact', 'javascript', 'javascriptreact' },
+  callback = function(args)
+    local root_dir = find_root({ 'package.json', 'tsconfig.json', 'jsconfig.json', '.git' })
+    
+    if vim.fn.executable('typescript-language-server') == 0 then
+      vim.notify('typescript-language-server not found. Install via :Mason', vim.log.levels.WARN)
+      return
+    end
+    
+    vim.lsp.start({
+      name = 'typescript-language-server',
+      cmd = { 'typescript-language-server', '--stdio' },
+      root_dir = root_dir,
+      on_attach = on_attach,
+      capabilities = capabilities,
+      init_options = {
+        preferences = {
+          includeInlayParameterNameHints = 'all',
+          includeInlayFunctionParameterTypeHints = true,
+          includeInlayVariableTypeHints = true,
+          includeInlayPropertyDeclarationTypeHints = true,
+          includeInlayFunctionLikeReturnTypeHints = true,
+        }
+      },
+    })
+  end,
+})
 
-for _, server_name in ipairs(installed_servers) do
-  -- Default setup for all servers
-  local opts = {
-    on_attach = on_attach,
-    capabilities = capabilities,
-  }
-  
-  -- Custom settings for specific servers
-  if server_name == 'lua_ls' then
-    opts.settings = {
-      Lua = {
-        runtime = { version = 'LuaJIT' },
-        workspace = {
-          checkThirdParty = false,
-          library = {
-            vim.env.VIMRUNTIME,
+-- Lua Language Server
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = { 'lua' },
+  callback = function(args)
+    local root_dir = find_root({ '.luarc.json', '.luarc.jsonc', '.luacheckrc', '.stylua.toml', 'stylua.toml', 'selene.toml', 'selene.yml', '.git' })
+    
+    if vim.fn.executable('lua-language-server') == 0 then
+      vim.notify('lua-language-server not found. Install via :Mason', vim.log.levels.WARN)
+      return
+    end
+    
+    vim.lsp.start({
+      name = 'lua-language-server',
+      cmd = { 'lua-language-server' },
+      root_dir = root_dir,
+      on_attach = on_attach,
+      capabilities = capabilities,
+      settings = {
+        Lua = {
+          runtime = {
+            version = 'LuaJIT',
+          },
+          workspace = {
+            checkThirdParty = false,
+            library = {
+              vim.env.VIMRUNTIME,
+              '${3rd}/luv/library',
+            },
+          },
+          diagnostics = {
+            globals = { 'vim' },
+          },
+          telemetry = {
+            enable = false,
           },
         },
-        diagnostics = {
-          globals = { 'vim' },
-        },
-        telemetry = { enable = false },
       },
-    }
-  elseif server_name == 'ts_ls' then
-    opts.settings = {
-      typescript = {
-        inlayHints = {
-          includeInlayParameterNameHints = 'all',
-          includeInlayFunctionParameterTypeHints = true,
-          includeInlayVariableTypeHints = true,
-          includeInlayPropertyDeclarationTypeHints = true,
-          includeInlayFunctionLikeReturnTypeHints = true,
-        },
-      },
-      javascript = {
-        inlayHints = {
-          includeInlayParameterNameHints = 'all',
-          includeInlayFunctionParameterTypeHints = true,
-          includeInlayVariableTypeHints = true,
-          includeInlayPropertyDeclarationTypeHints = true,
-          includeInlayFunctionLikeReturnTypeHints = true,
-        },
-      },
-    }
-  end
-  
-  -- Setup the server
-  lspconfig[server_name].setup(opts)
-end
+    })
+  end,
+})

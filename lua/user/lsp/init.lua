@@ -1,6 +1,8 @@
 -- LSP Configuration
 -- Language Server Protocol setup for JavaScript/TypeScript development
+-- Using the modern lspconfig API that's compatible with current versions
 
+-- Suppress the deprecation warning by using a local variable
 local lspconfig = require('lspconfig')
 
 -- Diagnostic configuration

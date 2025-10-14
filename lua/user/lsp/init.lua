@@ -1,8 +1,6 @@
 -- LSP Configuration
--- Astronvim-style configuration using Mason + nvim-lspconfig
--- Simply specify which servers you want, Mason handles the rest
-
-local lspconfig = require('lspconfig')
+-- Modern approach using ONLY vim.lsp.start() API + Mason installation
+-- NO lspconfig at all - completely clean implementation
 
 -- Diagnostic configuration
 vim.diagnostic.config({
@@ -55,54 +53,85 @@ local function on_attach(client, bufnr)
   end, vim.tbl_extend('force', opts, { desc = 'Format' }))
 end
 
--- Setup LSP servers - Mason will auto-install them
-local servers = {
-  'ts_ls',      -- TypeScript/JavaScript
-  'eslint',     -- ESLint
-  'jsonls',     -- JSON
-}
-
--- Auto-setup all LSP servers
-for _, server in ipairs(servers) do
-  lspconfig[server].setup({
-    on_attach = on_attach,
-  })
+-- Helper function to get Mason binary path
+local function get_mason_path(server_name)
+  local mason_registry = require('mason-registry')
+  if mason_registry.is_installed(server_name) then
+    return mason_registry.get_package(server_name):get_install_path()
+  end
+  return nil
 end
 
--- TypeScript-specific settings
-lspconfig.ts_ls.setup({
-  on_attach = on_attach,
-  settings = {
-    typescript = {
-      inlayHints = {
-        includeInlayParameterNameHints = 'all',
-        includeInlayFunctionParameterTypeHints = true,
-        includeInlayVariableTypeHints = true,
-        includeInlayPropertyDeclarationTypeHints = true,
-        includeInlayFunctionLikeReturnTypeHints = true,
+-- TypeScript/JavaScript Language Server
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = { 'typescript', 'typescriptreact', 'javascript', 'javascriptreact' },
+  callback = function(args)
+    local root_dir = vim.fs.dirname(vim.fs.find({ 'package.json', 'tsconfig.json', 'jsconfig.json', '.git' }, { upward = true })[1])
+    
+    -- Try Mason path first, fallback to system PATH
+    local cmd = { 'typescript-language-server', '--stdio' }
+    local mason_path = get_mason_path('typescript-language-server')
+    if mason_path then
+      cmd[1] = mason_path .. '/node_modules/.bin/typescript-language-server'
+    end
+
+    local client = vim.lsp.start({
+      name = 'typescript-language-server',
+      cmd = cmd,
+      root_dir = root_dir,
+      on_attach = on_attach,
+      settings = {
+        typescript = {
+          inlayHints = {
+            includeInlayParameterNameHints = 'all',
+            includeInlayFunctionParameterTypeHints = true,
+            includeInlayVariableTypeHints = true,
+            includeInlayPropertyDeclarationTypeHints = true,
+            includeInlayFunctionLikeReturnTypeHints = true,
+          },
+        },
+        javascript = {
+          inlayHints = {
+            includeInlayParameterNameHints = 'all',
+            includeInlayFunctionParameterTypeHints = true,
+            includeInlayVariableTypeHints = true,
+            includeInlayPropertyDeclarationTypeHints = true,
+            includeInlayFunctionLikeReturnTypeHints = true,
+          },
+        },
       },
-    },
-    javascript = {
-      inlayHints = {
-        includeInlayParameterNameHints = 'all',
-        includeInlayFunctionParameterTypeHints = true,
-        includeInlayVariableTypeHints = true,
-        includeInlayPropertyDeclarationTypeHints = true,
-        includeInlayFunctionLikeReturnTypeHints = true,
-      },
-    },
-  },
+    })
+    vim.lsp.buf_attach_client(args.buf, client)
+  end,
 })
 
--- JSON-specific settings
-lspconfig.jsonls.setup({
-  on_attach = on_attach,
-  settings = {
-    json = {
-      schemas = require('schemastore').json.schemas(),
-      validate = { enable = true },
-    },
-  },
+-- JSON Language Server
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = { 'json', 'jsonc' },
+  callback = function(args)
+    local root_dir = vim.fs.dirname(vim.fs.find({ 'package.json', '.git' }, { upward = true })[1])
+    
+    -- Try Mason path first, fallback to system PATH
+    local cmd = { 'json-lsp' }
+    local mason_path = get_mason_path('json-lsp')
+    if mason_path then
+      cmd[1] = mason_path .. '/node_modules/.bin/json-lsp'
+    end
+
+    local client = vim.lsp.start({
+      name = 'jsonls',
+      cmd = cmd,
+      root_dir = root_dir,
+      on_attach = on_attach,
+      settings = {
+        json = {
+          schemas = require('schemastore').json.schemas(),
+          validate = { enable = true },
+        },
+      },
+    })
+    vim.lsp.buf_attach_client(args.buf, client)
+  end,
 })
 
 -- Auto-format on save for supported file types

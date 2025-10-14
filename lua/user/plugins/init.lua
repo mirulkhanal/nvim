@@ -44,25 +44,6 @@ require("lazy").setup({
     },
   },
 
-  -- Mason LSP config
-  {
-    'williamboman/mason-lspconfig.nvim',
-    dependencies = { 'mason.nvim' },
-    opts = {
-      auto_install = true,
-      ensure_installed = {
-        'ts_ls',
-        'eslint',
-        'jsonls',
-      },
-      handlers = {
-        -- Auto-setup all LSP servers
-        function(server_name)
-          require('lspconfig')[server_name].setup({})
-        end,
-      },
-    },
-  },
 
   -- JSON Schema Store
   {

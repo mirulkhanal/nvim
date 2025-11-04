@@ -109,7 +109,24 @@ vim.api.nvim_create_autocmd('User', {
   -- Treesitter
   { '<leader>T', group = 'Treesitter' },
   { '<leader>Ti', '<cmd>TSInstallInfo<CR>', desc = 'Treesitter Info' },
-  { '<leader>Tu', '<cmd>TSUpdate<CR>', desc = 'Update parsers' },
+  { 
+    '<leader>Tu', 
+    function()
+      -- Check if TSUpdate command exists (treesitter needs to be loaded)
+      if vim.fn.exists(':TSUpdate') == 2 then
+        vim.cmd('TSUpdate')
+      else
+        -- If command doesn't exist, try using the API directly
+        local ok, ts_install = pcall(require, 'nvim-treesitter.install')
+        if ok then
+          ts_install.update({ with_sync = false })
+        else
+          vim.notify('Treesitter not available. Open a file first or wait for Treesitter to load.', vim.log.levels.WARN)
+        end
+      end
+    end,
+    desc = 'Update parsers' 
+  },
   { '<leader>Th', '<cmd>TSHighlightCapturesUnderCursor<CR>', desc = 'Highlight info' },
   
   -- Comment toggle (set by Comment.nvim plugin)

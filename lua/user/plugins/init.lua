@@ -17,6 +17,64 @@ vim.opt.rtp:prepend(lazypath)
 
 -- Setup lazy.nvim
 require("lazy").setup({
+  -- Clipboard fallback for TTY/tmux via OSC52
+  {
+    'ojroques/nvim-osc52',
+    event = { 'TextYankPost' },
+    config = function()
+      local ok, osc52 = pcall(require, 'osc52')
+      if not ok then
+        return
+      end
+      osc52.setup({
+        max_length = 0, -- no limit
+        silent = true,
+        trim = false,
+      })
+
+      -- Use OSC52 as a transparent provider for unnamedplus fallback in TTY
+      local function is_headless_or_tty()
+        return not (vim.fn.has('clipboard') == 1 and vim.fn.has('unnamedplus') == 1)
+      end
+
+      -- If no GUI clipboard is present, route yanks to OSC52
+      if is_headless_or_tty() then
+        vim.g.clipboard = {
+          name = 'osc52',
+          copy = {
+            ['+'] = function(lines, _)
+              osc52.copy(table.concat(lines, '\n'))
+            end,
+            ['*'] = function(lines, _)
+              osc52.copy(table.concat(lines, '\n'))
+            end,
+          },
+          paste = {
+            ['+'] = function()
+              return { vim.fn.getreg('+') }, vim.fn.getregtype('+')
+            end,
+            ['*'] = function()
+              return { vim.fn.getreg('*') }, vim.fn.getregtype('*')
+            end,
+          },
+        }
+      end
+
+      -- Also automatically send yanked text via OSC52 to keep external clipboard in sync
+      local augroup = vim.api.nvim_create_augroup('Osc52Yank', { clear = true })
+      vim.api.nvim_create_autocmd('TextYankPost', {
+        group = augroup,
+        callback = function()
+          if vim.v.event.operator == 'y' and vim.v.event.regname ~= '"' then
+            local yanked = vim.fn.getreg(vim.v.event.regname)
+            if yanked and #yanked > 0 then
+              pcall(osc52.copy, yanked)
+            end
+          end
+        end,
+      })
+    end,
+  },
   -- Gruvbox Material colorscheme
   {
     'sainnhe/gruvbox-material',

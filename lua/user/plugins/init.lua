@@ -727,4 +727,61 @@ require("lazy").setup({
       },
     },
   },
+
+  -- ToggleTerm integrated terminal
+  {
+    'akinsho/toggleterm.nvim',
+    version = '*',
+    cmd = { 'ToggleTerm', 'TermExec' },
+    keys = {
+      { '<leader>\\f', '<cmd>ToggleTerm direction=float<CR>', desc = 'Terminal float' },
+      { '<leader>\\h', '<cmd>ToggleTerm direction=horizontal size=15<CR>', desc = 'Terminal horizontal' },
+      { '<leader>\\v', '<cmd>ToggleTerm direction=vertical size=60<CR>', desc = 'Terminal vertical' },
+      {
+        '<leader>\\g',
+        function()
+          local Terminal = require('toggleterm.terminal').Terminal
+          local lazygit = Terminal:new({
+            cmd = 'lazygit',
+            hidden = true,
+            direction = 'float',
+            close_on_exit = true,
+          })
+          lazygit:toggle()
+        end,
+        desc = 'Terminal lazygit',
+      },
+    },
+    opts = {
+      size = 15,
+      shading_factor = 2,
+      direction = 'float',
+      persist_size = true,
+      close_on_exit = true,
+      shell = vim.o.shell,
+      float_opts = {
+        border = 'curved',
+        winblend = 0,
+      },
+    },
+    config = function(_, opts)
+      local toggleterm = require('toggleterm')
+      toggleterm.setup(opts)
+
+      -- Provide consistent window navigation inside terminals
+      local function set_terminal_keymaps(event)
+        local options = { buffer = event.buf }
+        vim.keymap.set('t', '<C-h>', [[<Cmd>wincmd h<CR>]], options)
+        vim.keymap.set('t', '<C-j>', [[<Cmd>wincmd j<CR>]], options)
+        vim.keymap.set('t', '<C-k>', [[<Cmd>wincmd k<CR>]], options)
+        vim.keymap.set('t', '<C-l>', [[<Cmd>wincmd l<CR>]], options)
+        vim.keymap.set('t', '<Esc>', [[<C-\><C-n>]], options)
+      end
+
+      vim.api.nvim_create_autocmd('TermOpen', {
+        pattern = 'term://*',
+        callback = set_terminal_keymaps,
+      })
+    end,
+  },
 })

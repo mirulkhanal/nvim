@@ -132,6 +132,13 @@ vim.api.nvim_create_autocmd('User', {
   -- Comment toggle (set by Comment.nvim plugin)
   { '<leader>/', desc = 'Toggle comment' },
   
+  -- Terminal
+  { '<leader>\\', group = 'Terminal' },
+  { '<leader>\\f', desc = 'Terminal float' },
+  { '<leader>\\h', desc = 'Terminal horizontal' },
+  { '<leader>\\v', desc = 'Terminal vertical' },
+  { '<leader>\\g', desc = 'Terminal lazygit' },
+
   -- Help/Documentation
   { '<leader>?', group = 'Help' },
   { '<leader>?h', '<cmd>help<CR>', desc = 'Help' },

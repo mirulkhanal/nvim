@@ -113,9 +113,22 @@ require("lazy").setup({
         },
         lualine_x = { 
           {
+            function()
+              return '▶ Run'
+            end,
+            cond = function()
+              return require('user.core.runner').can_run()
+            end,
+            on_click = function(_, button)
+              if button == 'l' then
+                vim.cmd('RunFile')
+              end
+            end,
+          },
+          {
             -- Show LSP status
             function()
-              local clients = vim.lsp.get_active_clients({ bufnr = 0 })
+              local clients = vim.lsp.get_clients({ bufnr = 0 })
               if #clients == 0 then
                 return ''
               end
@@ -321,6 +334,10 @@ require("lazy").setup({
       'JoosepAlviste/nvim-ts-context-commentstring', -- Treesitter integration for JSX/TSX
     },
     config = function()
+      local context_commentstring = require('ts_context_commentstring')
+      context_commentstring.setup({ enable_autocmd = false })
+      local context_pre_hook = require('ts_context_commentstring.integrations.comment_nvim').create_pre_hook()
+
       require('Comment').setup({
         -- Add a space between comment and the line
         padding = true,
@@ -330,7 +347,10 @@ require("lazy").setup({
           extra = false,
         },
         -- Function to call before commenting
-        pre_hook = require('ts_context_commentstring.integrations.comment_nvim').create_pre_hook(),
+        pre_hook = function(ctx)
+          local ok, commentstring = pcall(context_pre_hook, ctx)
+          return ok and commentstring or nil
+        end,
       })
       
       -- Custom keymaps
@@ -425,7 +445,7 @@ require("lazy").setup({
   -- Mason for managing external tools (LSP servers, formatters, linters)
   {
     'williamboman/mason.nvim',
-    cmd = 'Mason',
+    lazy = false,
     build = ':MasonUpdate',
     config = function()
       require('mason').setup({
@@ -443,6 +463,7 @@ require("lazy").setup({
       local servers = {
         'typescript-language-server',
         'lua-language-server',
+        'jdtls',
       }
       
       for _, server in ipairs(servers) do
@@ -457,11 +478,155 @@ require("lazy").setup({
   {
     'nvim-lua/plenary.nvim', -- Required for some LSP features
     lazy = false,
+  },
+
+  -- Popup completion for LSP, paths, snippets, and words in open buffers.
+  {
+    'saghen/blink.cmp',
+    version = '1.*',
+    dependencies = { 'rafamadriz/friendly-snippets' },
+    lazy = false,
+    opts = {
+      keymap = { preset = 'enter' },
+      completion = {
+        menu = { auto_show = true },
+        documentation = { auto_show = false },
+        list = {
+          selection = { preselect = false },
+        },
+      },
+      sources = {
+        default = { 'lsp', 'path', 'snippets', 'buffer' },
+      },
+      -- Show function signatures and the active argument while typing calls.
+      signature = {
+        enabled = true,
+        trigger = {
+          enabled = true,
+          -- Refresh the active-parameter highlight as the argument is typed.
+          show_on_keyword = true,
+          show_on_trigger_character = true,
+        },
+        window = { border = 'rounded' },
+      },
+      fuzzy = { implementation = 'prefer_rust_with_warning' },
+    },
+    config = function(_, opts)
+      local completion = require('blink.cmp')
+      completion.setup(opts)
+
+      -- Preserve the capability table already captured by the native LSP callbacks.
+      local lsp = require('user.lsp')
+      local enhanced = completion.get_lsp_capabilities(lsp.capabilities)
+      for key in pairs(lsp.capabilities) do
+        lsp.capabilities[key] = nil
+      end
+      for key, value in pairs(enhanced) do
+        lsp.capabilities[key] = value
+      end
+    end,
+  },
+
+  {
+    'mfussenegger/nvim-jdtls',
+    ft = 'java',
     config = function()
-      -- Load our LSP configuration after Mason is ready
-      vim.defer_fn(function()
-        require('user.lsp')
-      end, 100)
+      local lsp = require('user.lsp')
+      local function find_jdtls_java_home()
+        local candidates = {}
+        if vim.env.JAVA_HOME and vim.env.JAVA_HOME ~= '' then
+          table.insert(candidates, vim.env.JAVA_HOME .. '/bin/java')
+        end
+        for _, java in ipairs(vim.fn.glob('/usr/lib/jvm/*/bin/java', false, true)) do
+          table.insert(candidates, java)
+        end
+        local path_java = vim.fn.exepath('java')
+        if path_java ~= '' then
+          table.insert(candidates, path_java)
+        end
+
+        local best_home, best_version
+        for _, java in ipairs(candidates) do
+          if vim.fn.executable(java) == 1 then
+            local result = vim.system({ java, '-version' }, { text = true }):wait()
+            local output = (result.stdout or '') .. (result.stderr or '')
+            local version = tonumber(output:match('version "(%d+)') or output:match('openjdk (%d+)'))
+            if version and version >= 21 and (not best_version or version > best_version) then
+              best_home = vim.fs.dirname(vim.fs.dirname(java))
+              best_version = version
+            end
+          end
+        end
+        return best_home, best_version
+      end
+      local java_home = find_jdtls_java_home()
+
+      local function start_jdtls(bufnr)
+        if not vim.api.nvim_buf_is_valid(bufnr) then
+          return
+        end
+        if not java_home then
+          vim.notify('JDTLS requires Java 21 or newer; no compatible Java runtime was found.', vim.log.levels.ERROR)
+          return
+        end
+        local path = vim.api.nvim_buf_get_name(bufnr)
+        local directory = vim.fs.dirname(path)
+        local root_dir = vim.fs.root(directory, {
+          'mvnw', 'gradlew', 'pom.xml', 'build.gradle', 'build.gradle.kts',
+          'settings.gradle', 'settings.gradle.kts', 'build.xml', '.git',
+        }) or directory
+        local workspace_dir = vim.fn.stdpath('cache')
+          .. '/jdtls/' .. vim.fn.sha256(root_dir):sub(1, 12)
+        vim.fn.mkdir(workspace_dir, 'p')
+
+        local jdtls_bin = vim.fn.exepath('jdtls')
+        if jdtls_bin == '' then
+          jdtls_bin = 'jdtls'
+        end
+        local config = {
+          cmd = { jdtls_bin, '-data', workspace_dir },
+          cmd_env = { JAVA_HOME = java_home },
+          root_dir = root_dir,
+          capabilities = lsp.capabilities,
+          on_attach = lsp.on_java_attach,
+          settings = {
+            java = {
+              format = { enabled = true },
+              inlayHints = {
+                parameterNames = { enabled = 'all' },
+              },
+            },
+          },
+        }
+
+        local function start_when_installed(attempts_left)
+          if not vim.api.nvim_buf_is_valid(bufnr) then
+            return
+          end
+          if vim.fn.executable(jdtls_bin) == 1 then
+            require('jdtls').start_or_attach(config, nil, { bufnr = bufnr })
+          elseif attempts_left > 0 then
+            vim.defer_fn(function()
+              start_when_installed(attempts_left - 1)
+            end, 1000)
+          else
+            vim.notify('JDTLS is not installed. Install it with :Mason.', vim.log.levels.WARN)
+          end
+        end
+        start_when_installed(60)
+      end
+
+      -- Start for the buffer that triggered lazy loading, and for later Java buffers.
+      vim.api.nvim_create_autocmd('FileType', {
+        pattern = 'java',
+        callback = function(args)
+          start_jdtls(args.buf)
+        end,
+      })
+
+      if vim.bo.filetype == 'java' then
+        start_jdtls(vim.api.nvim_get_current_buf())
+      end
     end,
   },
 
@@ -476,113 +641,142 @@ require("lazy").setup({
     end,
   },
 
-  -- Treesitter for enhanced syntax highlighting
+  -- Treesitter parser installation and native Neovim integration
   {
     'nvim-treesitter/nvim-treesitter',
+    branch = 'main',
     build = ':TSUpdate',
-    event = { 'BufReadPost', 'BufNewFile' },
-    dependencies = {
-      'nvim-treesitter/nvim-treesitter-textobjects', -- Enhanced text objects
-    },
+    lazy = false,
     config = function()
-      require('nvim-treesitter.configs').setup({
-        -- Install parsers for these languages
-        ensure_installed = {
-          'typescript',
-          'javascript',
-          'tsx',
-          'json',
-          'jsonc',
-          'lua',
-          'vim',
-          'vimdoc',
-          'markdown',
-          'markdown_inline',
-          'html',
-          'css',
-          'bash',
-          'regex',
-        },
-        
-        -- Install parsers synchronously (only applied to `ensure_installed`)
-        sync_install = false,
-        
-        -- Automatically install missing parsers when entering buffer
-        auto_install = true,
-        
-        -- Syntax highlighting
-        highlight = {
-          enable = true,
-          -- Disable for large files
-          disable = function(lang, buf)
-            local max_filesize = 100 * 1024 -- 100 KB
-            local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
-            if ok and stats and stats.size > max_filesize then
-              return true
+      local treesitter = require('nvim-treesitter')
+      local parsers = {
+        'typescript', 'javascript', 'tsx', 'json', 'jsonc', 'lua', 'vim',
+        'vimdoc', 'markdown', 'markdown_inline', 'html', 'css', 'bash', 'regex',
+      }
+
+      if type(treesitter.install) == 'function' then
+        -- nvim-treesitter main API (new standalone parser installer).
+        treesitter.setup()
+        treesitter.install(parsers)
+
+        vim.api.nvim_create_autocmd('FileType', {
+          pattern = {
+            'typescript', 'typescriptreact', 'javascript', 'javascriptreact',
+            'json', 'jsonc', 'lua', 'vim', 'vimdoc', 'markdown', 'html', 'css',
+            'sh', 'bash',
+          },
+          callback = function(args)
+            local file_size = vim.fn.getfsize(vim.api.nvim_buf_get_name(args.buf))
+            if file_size > 100 * 1024 then
+              return
             end
+            vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+            vim.wo.foldmethod = 'expr'
+            vim.wo.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+            local function start_when_ready(attempts_left)
+              if not vim.api.nvim_buf_is_valid(args.buf) then
+                return
+              end
+              local ok = pcall(vim.treesitter.start, args.buf)
+              if not ok and attempts_left > 0 then
+                vim.defer_fn(function()
+                  start_when_ready(attempts_left - 1)
+                end, 1000)
+              end
+            end
+            start_when_ready(60)
           end,
-          additional_vim_regex_highlighting = false,
-        },
-        
-        -- Indentation based on treesitter
-        indent = {
-          enable = true,
-          -- Disable for specific languages if needed
-          disable = {},
-        },
-        
-        -- Incremental selection
-        incremental_selection = {
-          enable = true,
-          keymaps = {
-            init_selection = '<CR>',
-            node_incremental = '<CR>',
-            scope_incremental = '<S-CR>',
-            node_decremental = '<BS>',
-          },
-        },
-        
-        -- Text objects
-        textobjects = {
-          select = {
+        })
+      else
+        -- Backward-compatible setup for checkouts that have not synced yet.
+        require('nvim-treesitter.configs').setup({
+          ensure_installed = parsers,
+          auto_install = true,
+          highlight = {
             enable = true,
-            lookahead = true,
+            disable = function(_, bufnr)
+              local size = vim.fn.getfsize(vim.api.nvim_buf_get_name(bufnr))
+              return size > 100 * 1024
+            end,
+          },
+          indent = { enable = true },
+          incremental_selection = {
+            enable = true,
             keymaps = {
-              ['af'] = '@function.outer',
-              ['if'] = '@function.inner',
-              ['ac'] = '@class.outer',
-              ['ic'] = '@class.inner',
-              ['aa'] = '@parameter.outer',
-              ['ia'] = '@parameter.inner',
+              init_selection = '<CR>',
+              node_incremental = '<CR>',
+              scope_incremental = '<S-CR>',
+              node_decremental = '<BS>',
             },
           },
-          move = {
-            enable = true,
-            set_jumps = true,
-            goto_next_start = {
-              [']f'] = '@function.outer',
-              [']c'] = '@class.outer',
+          textobjects = {
+            select = {
+              enable = true,
+              lookahead = true,
+              keymaps = {
+                af = '@function.outer', ['if'] = '@function.inner',
+                ac = '@class.outer', ic = '@class.inner',
+                aa = '@parameter.outer', ia = '@parameter.inner',
+              },
             },
-            goto_next_end = {
-              [']F'] = '@function.outer',
-              [']C'] = '@class.outer',
-            },
-            goto_previous_start = {
-              ['[f'] = '@function.outer',
-              ['[c'] = '@class.outer',
-            },
-            goto_previous_end = {
-              ['[F'] = '@function.outer',
-              ['[C'] = '@class.outer',
+            move = {
+              enable = true,
+              set_jumps = true,
+              goto_next_start = { [']f'] = '@function.outer', [']c'] = '@class.outer' },
+              goto_next_end = { [']F'] = '@function.outer', [']C'] = '@class.outer' },
+              goto_previous_start = { ['[f'] = '@function.outer', ['[c'] = '@class.outer' },
+              goto_previous_end = { ['[F'] = '@function.outer', ['[C'] = '@class.outer' },
             },
           },
-        },
-      })
-      
-      -- Enable folding based on treesitter
-      vim.opt.foldmethod = 'expr'
-      vim.opt.foldexpr = 'nvim_treesitter#foldexpr()'
-      vim.opt.foldenable = false -- Don't fold by default
+        })
+        vim.opt.foldmethod = 'expr'
+        vim.opt.foldexpr = 'nvim_treesitter#foldexpr()'
+      end
+      vim.opt.foldenable = false
+    end,
+  },
+
+  -- Treesitter text objects are configured by the matching API generation.
+  {
+    'nvim-treesitter/nvim-treesitter-textobjects',
+    branch = 'main',
+    dependencies = { 'nvim-treesitter/nvim-treesitter' },
+    lazy = false,
+    config = function()
+      local ok, textobjects = pcall(require, 'nvim-treesitter-textobjects')
+      if not ok or type(textobjects.setup) ~= 'function' then
+        return -- Legacy textobjects are configured through nvim-treesitter.configs.
+      end
+
+      textobjects.setup({ select = { lookahead = true }, move = { set_jumps = true } })
+      local select = require('nvim-treesitter-textobjects.select').select_textobject
+      local select_maps = {
+        af = '@function.outer', ['if'] = '@function.inner',
+        ac = '@class.outer', ic = '@class.inner',
+        aa = '@parameter.outer', ia = '@parameter.inner',
+      }
+      for _, mode in ipairs({ 'x', 'o' }) do
+        for key, query in pairs(select_maps) do
+          local capture = query
+          vim.keymap.set(mode, key, function() select(capture, 'textobjects') end)
+        end
+      end
+
+      local move = require('nvim-treesitter-textobjects.move')
+      local move_maps = {
+        [']f'] = { move.goto_next_start, '@function.outer' },
+        [']c'] = { move.goto_next_start, '@class.outer' },
+        ['[f'] = { move.goto_previous_start, '@function.outer' },
+        ['[c'] = { move.goto_previous_start, '@class.outer' },
+        [']F'] = { move.goto_next_end, '@function.outer' },
+        [']C'] = { move.goto_next_end, '@class.outer' },
+        ['[F'] = { move.goto_previous_end, '@function.outer' },
+        ['[C'] = { move.goto_previous_end, '@class.outer' },
+      }
+      for key, mapping in pairs(move_maps) do
+        local callback, capture = mapping[1], mapping[2]
+        vim.keymap.set({ 'n', 'x', 'o' }, key, function() callback(capture, 'textobjects') end)
+      end
     end,
   },
 
@@ -776,6 +970,21 @@ require("lazy").setup({
         vim.keymap.set('t', '<C-k>', [[<Cmd>wincmd k<CR>]], options)
         vim.keymap.set('t', '<C-l>', [[<Cmd>wincmd l<CR>]], options)
         vim.keymap.set('t', '<Esc>', [[<C-\><C-n>]], options)
+
+        local function hide_current_terminal()
+          local _, terminal = require('toggleterm.terminal').identify()
+          if terminal then
+            terminal:close()
+          end
+        end
+        vim.keymap.set('t', '<C-q>', hide_current_terminal, {
+          buffer = event.buf,
+          desc = 'Hide terminal and keep it running',
+        })
+        vim.keymap.set('n', '<C-q>', hide_current_terminal, {
+          buffer = event.buf,
+          desc = 'Hide terminal and keep it running',
+        })
       end
 
       vim.api.nvim_create_autocmd('TermOpen', {

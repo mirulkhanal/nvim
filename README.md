@@ -23,8 +23,11 @@ nvim/
 - **Plugin Manager**: Lazy.nvim
 - **Keymap Hints**: Which-key.nvim (clean, icon-free interface)
 - **LSP Support**: Full Language Server Protocol setup
-- **Language Servers**: TypeScript/JavaScript, ESLint, JSON with schema validation
-- **Auto-formatting**: On save for JS/TS/JSON files
+- **Completion**: LSP, snippets, file paths, and open-buffer words in a popup menu
+- **Run current file**: Click `▶ Run` in the statusline or use `<leader>rr`
+- **Language Servers**: TypeScript/JavaScript, Lua, and Java, installed through Mason
+- **Formatting**: Java formats on save; `<leader>cf` formats an attached language server that supports it
+- **Treesitter**: Parser installation, syntax highlighting, indentation, folding, and text objects
 
 ## Keymaps
 
@@ -32,10 +35,25 @@ nvim/
 - `<leader>w` - Save file
 - `<leader>x` - Quit
 - `<leader>h` - Clear highlights
-- `<leader>t` - Test leader key
 - `<leader>e` - Toggle file explorer (Neo-tree)
 - `<leader>o` - Focus file explorer
-- `<leader>fm` - Open Mason (LSP manager)
+- `<leader>m` - Open Mason (LSP manager)
+- `<leader>ff` - Find files (Telescope)
+- `<leader>fg` - Search text (Telescope)
+- `<leader>cf` - Format the current file through LSP
+- `<leader>rr` - Run the current Java, C/C++, Python, JavaScript, Lua, shell, Go, or Rust file
+- `▶ Run` in the statusline - Click to run the current supported file
+- `:LspInfo` - Show LSP clients attached to the current buffer and formatting support
+- Java support requires Java 21 or newer to run JDTLS
+- `<C-Space>` - Open the completion menu manually in insert mode
+- `<Enter>` - Accept the selected completion
+- `<C-n>` / `<C-p>` or arrow keys - Move through completion choices
+- In Java, type `psvm` and select the snippet to insert a main method
+- `<C-q>` in a terminal - Hide the current terminal while keeping its process running
+- `q` in a finished Run terminal - Delete its terminal buffer and output
+- `<leader>\q` - Toggle terminal windows from the editor
+- `<leader>\f` / `<leader>\h` / `<leader>\v` - Open float / horizontal / vertical terminal
+- `<leader>\g` - Open lazygit in a terminal
 - `<C-h/j/k/l>` - Window navigation
 
 ### File Explorer (Neo-tree)
@@ -61,12 +79,11 @@ nvim/
 - `K` - Show documentation
 - `gi` - Go to implementation
 - `gr` - Show references
-- `<leader>D` - Type definition
-- `<leader>rn` - Rename symbol
+- `<leader>cr` - Rename symbol
 - `<leader>ca` - Code action
-- `<leader>f` - Format code
+- `<leader>cf` - Format code
 - `[d` / `]d` - Previous/Next diagnostic
-- `<leader>d` - Open diagnostic
+- `<leader>dd` - Open diagnostic
 
 ## Adding New Plugins
 

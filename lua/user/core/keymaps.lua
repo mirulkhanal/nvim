@@ -27,6 +27,20 @@ vim.keymap.set('v', '<A-k>', ":m '<-2<CR>gv=gv", { desc = 'Move selection up' })
 -- Better paste (don't yank replaced text)
 vim.keymap.set('v', 'p', '"_dP', { desc = 'Paste without yanking' })
 
+-- Keep code menu sequences mapped even when no LSP is attached.
+vim.keymap.set({ 'n', 'v' }, '<leader>ca', vim.lsp.buf.code_action, { desc = 'Code action' })
+vim.keymap.set('n', '<leader>cr', vim.lsp.buf.rename, { desc = 'Rename symbol' })
+vim.keymap.set('n', '<leader>cf', function()
+  local clients = vim.lsp.get_clients({ bufnr = 0, method = 'textDocument/formatting' })
+  if #clients == 0 then
+    vim.notify('No attached language server supports formatting here. Run :LspInfo for details.', vim.log.levels.WARN)
+    return
+  end
+  vim.lsp.buf.format({ async = true })
+end, { desc = 'Format file' })
+vim.keymap.set('n', '<leader>cd', vim.diagnostic.open_float, { desc = 'Show diagnostic' })
+vim.keymap.set('n', '<leader>dd', vim.diagnostic.open_float, { desc = 'Show diagnostic' })
+
 -- ============================================================================
 -- Leader Keymaps with Which-Key Groups
 -- ============================================================================
@@ -43,6 +57,51 @@ vim.api.nvim_create_autocmd('User', {
   { '<leader>q', '<cmd>q<CR>', desc = 'Quit' },
   { '<leader>x', '<cmd>x<CR>', desc = 'Save and quit' },
   { '<leader>h', '<cmd>nohlsearch<CR>', desc = 'Clear highlights' },
+
+  -- Run current source file
+  { '<leader>r', group = 'Run' },
+  { '<leader>rr', '<cmd>RunFile<CR>', desc = 'Run current file' },
+
+  -- LSP navigation (available when an LSP is attached)
+  { 'g', group = 'LSP navigation' },
+  { 'gd', desc = 'Go to definition' },
+  { 'gD', desc = 'Go to declaration' },
+  { 'gi', desc = 'Go to implementation' },
+  { 'gr', desc = 'Show references' },
+  { 'K', desc = 'Hover documentation' },
+  { '<C-Space>', desc = 'Completion menu in insert mode / code action in normal mode' },
+  { '[', group = 'Previous' },
+  { '[d', desc = 'Previous diagnostic' },
+  { '[f', desc = 'Previous function start' },
+  { '[F', desc = 'Previous function end' },
+  { '[c', desc = 'Previous class start' },
+  { '[C', desc = 'Previous class end' },
+  { ']', group = 'Next' },
+  { ']d', desc = 'Next diagnostic' },
+  { ']f', desc = 'Next function start' },
+  { ']F', desc = 'Next function end' },
+  { ']c', desc = 'Next class start' },
+  { ']C', desc = 'Next class end' },
+
+  -- Treesitter text objects
+  { 'a', group = 'Outer text object' },
+  { 'af', desc = 'Select outer function' },
+  { 'ac', desc = 'Select outer class' },
+  { 'aa', desc = 'Select outer parameter' },
+  { 'i', group = 'Inner text object' },
+  { 'if', desc = 'Select inner function' },
+  { 'ic', desc = 'Select inner class' },
+  { 'ia', desc = 'Select inner parameter' },
+  { '<CR>', desc = 'Expand Treesitter selection' },
+  { '<S-CR>', desc = 'Expand selection to scope' },
+  { '<BS>', desc = 'Shrink Treesitter selection' },
+
+  -- Multi-cursor editing
+  { '<C-d>', desc = 'Select next matching word' },
+  { '<C-x>', desc = 'Skip matching word' },
+  { '<C-p>', desc = 'Remove multi-cursor region' },
+  { '<C-Down>', desc = 'Add cursor below' },
+  { '<C-Up>', desc = 'Add cursor above' },
   
   -- Find operations (Telescope)
   { '<leader>f', group = 'Find' },
@@ -86,22 +145,20 @@ vim.api.nvim_create_autocmd('User', {
   { '<leader>e', '<cmd>Neotree toggle<CR>', desc = 'Toggle Explorer' },
   { '<leader>o', '<cmd>Neotree focus<CR>', desc = 'Focus Explorer' },
   
-  -- LSP operations (when LSP is attached)
+  -- Native LSP status
   { '<leader>l', group = 'LSP' },
   { '<leader>li', '<cmd>LspInfo<CR>', desc = 'LSP Info' },
-  { '<leader>lr', '<cmd>LspRestart<CR>', desc = 'Restart LSP' },
-  { '<leader>ls', '<cmd>LspStart<CR>', desc = 'Start LSP' },
-  { '<leader>lS', '<cmd>LspStop<CR>', desc = 'Stop LSP' },
   
   -- Code operations (set by LSP on_attach)
   { '<leader>c', group = 'Code' },
-  { '<leader>ca', desc = 'Code action' }, -- Set by LSP
-  { '<leader>cr', desc = 'Rename' }, -- Will add this
-  { '<leader>cf', desc = 'Format' }, -- Will add this
-  { '<leader>cd', desc = 'Show diagnostic' }, -- Will add this
+  { '<leader>ca', desc = 'Code action' },
+  { '<leader>cr', desc = 'Rename symbol' },
+  { '<leader>cf', desc = 'Format file' },
+  { '<leader>cd', desc = 'Show diagnostic' },
   
   -- Diagnostics
-  { '<leader>d', desc = 'Show diagnostic' }, -- Set by LSP
+  { '<leader>d', group = 'Diagnostics' },
+  { '<leader>dd', desc = 'Show diagnostic' },
   
   -- Mason (package manager)
   { '<leader>m', '<cmd>Mason<CR>', desc = 'Mason (LSP/Tools)' },
@@ -137,6 +194,7 @@ vim.api.nvim_create_autocmd('User', {
   { '<leader>\\f', desc = 'Terminal float' },
   { '<leader>\\h', desc = 'Terminal horizontal' },
   { '<leader>\\v', desc = 'Terminal vertical' },
+  { '<leader>\\q', '<cmd>ToggleTerm<CR>', desc = 'Hide / show terminals' },
   { '<leader>\\g', desc = 'Terminal lazygit' },
 
   -- Help/Documentation
@@ -162,14 +220,14 @@ vim.api.nvim_create_autocmd('User', {
 --   K           - Hover documentation
 --
 -- Code actions:
---   <leader>rn  - Rename symbol
+--   <leader>cr  - Rename symbol
 --   <leader>ca  - Code action
---   <leader>f   - Format file
+--   <leader>cf  - Format file
 --
 -- Diagnostics:
 --   [d          - Previous diagnostic
 --   ]d          - Next diagnostic
---   <leader>d   - Show diagnostic
+--   <leader>dd  - Show diagnostic
 
 -- ============================================================================
 -- Treesitter Text Objects (Applied when Treesitter loads - for reference)
